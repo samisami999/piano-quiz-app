@@ -1,0 +1,1816 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>鍵盤で答えて覚えるシリーズ</title>
+  
+  <!-- PWA設定 -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#e07a4f">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <link rel="apple-touch-icon" href="icon.svg">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/twemoji@14.0.2/dist/twemoji.min.js" crossorigin="anonymous"></script>
+  <style>
+    /* Bravura: SMuFL準拠の音楽記号フォント（OFL-1.1） */
+    @font-face {
+      font-family: "Bravura";
+      src: url("https://cdn.jsdelivr.net/gh/steinbergmedia/bravura@master/redist/Bravura.otf") format("opentype");
+      font-display: swap;
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vexflow@4.2.2/build/cjs/vexflow.js"></script>
+  <style>
+    :root {
+      --bg-color: #f3e9db;
+      --card-bg: #faf5ec;
+      --text-color: #33312d;
+      --primary: #e07a4f;
+      --primary-dark: #b95836;
+      --line-base: #ece1d0;
+      --highlight-line: #e07a4f;
+      --correct-line: #4f8c70;
+      --wrong-line: #c95f5a;
+      --correct: #4f8c70;
+      --wrong: #c95f5a;
+
+      /* ウェルネス系サブカラー */
+      --teal: #4f8c85;
+      --coral: #e48b68;
+      --muted-text: #7f776d;
+      --chip-bg: #eee4d6;
+      --chip-bg-active: #f8d9c8;
+      --soft-shadow: rgba(91, 68, 44, 0.12);
+
+      /* 指板カラー（ローズウッド／リアル比率） */
+      --fretboard-wood-top: #4a2c17;
+      --fretboard-wood-bottom: #3a2210;
+      --fret-silver: #c4c0b8;
+      --nut-color: #f5f0e0;
+      --inlay-color: #e8dcc0;
+      --target-dot: #e8a084;
+      --grain-color-a: #5c3a1f;
+      --grain-color-b: #2e1a0d;
+    }
+
+    img.emoji {
+      height: 1em;
+      width: 1em;
+      margin: 0 0.05em 0 0.1em;
+      vertical-align: -0.15em;
+    }
+
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+
+    body {
+      margin: 0;
+      padding: 15px;
+      font-family: "Zen Kaku Gothic New", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: var(--bg-color);
+      background-image:
+        radial-gradient(ellipse at 10% -10%, rgba(255,255,250,0.6), transparent 55%),
+        radial-gradient(ellipse at 100% 110%, rgba(95,138,134,0.10), transparent 55%);
+      background-attachment: fixed;
+      color: var(--text-color);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .series-title {
+      font-family: "Zen Maru Gothic", sans-serif;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--muted-text);
+      letter-spacing: 0.06em;
+      margin-bottom: 6px;
+    }
+
+    h1 {
+      font-family: "Zen Maru Gothic", sans-serif;
+      font-size: 1.3rem;
+      font-weight: 900;
+      margin: 0 0 10px 0;
+      color: var(--primary-dark);
+      text-align: center;
+    }
+
+    /* モード切替タブ */
+    .app-mode-tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 12px;
+      background: var(--chip-bg);
+      padding: 5px;
+      border-radius: 24px;
+    }
+
+    .tab-btn {
+      border: none;
+      background: transparent;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--muted-text);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      background: var(--card-bg);
+      color: var(--primary-dark);
+      box-shadow: 0 3px 10px var(--soft-shadow);
+    }
+
+    .tab-btn.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .midi-status {
+      font-size: 0.78rem;
+      padding: 5px 14px;
+      border-radius: 20px;
+      margin-bottom: 12px;
+      font-weight: 700;
+      background: var(--chip-bg);
+      color: var(--muted-text);
+    }
+
+    .midi-status.connected {
+      background: #e0efe7;
+      color: var(--correct);
+    }
+
+    .quiz-container {
+      background: var(--card-bg);
+      width: 100%;
+      max-width: 460px;
+      border-radius: 28px;
+      padding: 22px 20px;
+      box-shadow: 0 14px 34px var(--soft-shadow);
+      text-align: center;
+      position: relative;
+    }
+
+    .question-box {
+      min-height: 4.2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .question-label {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--muted-text);
+    }
+
+    .question-root {
+      font-family: "Zen Maru Gothic", sans-serif;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--correct);
+      margin-top: 2px;
+    }
+
+    .question-interval {
+      font-family: "Zen Maru Gothic", sans-serif;
+      font-size: 1.5rem;
+      font-weight: 900;
+      color: var(--primary-dark);
+      margin-top: 2px;
+    }
+
+    .visual-container {
+      width: 100%;
+      min-height: 140px;
+      margin: 6px auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .visual-container .staff-svg {
+      display: block;
+      width: min(320px, 100%);
+      height: auto;
+    }
+
+    .result-message-area {
+      height: 4.9rem;
+      min-height: 4.9rem;
+      max-height: 4.9rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 0;
+      pointer-events: none;
+      overflow: hidden;
+      flex: 0 0 4.9rem;
+    }
+
+    .keyboard-stage {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    .result-toast {
+      height: 4.1rem;
+      min-height: 4.1rem;
+      max-height: 4.1rem;
+      box-sizing: border-box;
+      background: rgba(250, 245, 236, 0.96);
+      border-radius: 20px;
+      padding: 9px 18px;
+      box-shadow: 0 8px 22px rgba(91, 68, 44, 0.15);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      animation: popIn 0.22s ease;
+      flex: 0 0 4.1rem;
+    }
+
+    .result-text {
+      font-size: 1.05rem;
+      font-weight: bold;
+      display: inline-block;
+    }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.92); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .result-text.correct { color: var(--correct); }
+    .result-text.wrong { color: var(--wrong); }
+
+    .result-subtext {
+      font-size: 0.85rem;
+      color: var(--muted-text);
+      margin-top: 2px;
+      font-weight: 500;
+    }
+
+    .music-glyph {
+      font-family: "Bravura";
+      font-style: normal;
+      font-weight: normal;
+      fill: #5c5548;
+    }
+
+    .keyboard-container {
+      margin: 4px auto 2px auto;
+      display: flex;
+      justify-content: center;
+      width: 100%;
+      padding: 0;
+    }
+
+    .keyboard-container svg {
+      display: block;
+      width: min(100%, 390px);
+      height: auto;
+    }
+
+    @media (max-width: 520px) {
+      .quiz-container {
+        padding-left: 14px;
+        padding-right: 14px;
+      }
+
+      .keyboard-container svg {
+        width: 100%;
+        max-width: none;
+      }
+
+      .result-message-area {
+        height: 4.9rem;
+        min-height: 4.9rem;
+        max-height: 4.9rem;
+      }
+    }
+
+    .key-white {
+      fill: #fdf9f0;
+      stroke: #d9cbb0;
+      stroke-width: 1.5;
+      cursor: pointer;
+      transition: fill 0.08s ease;
+    }
+
+    .key-white.active {
+      fill: #f8d9c8;
+    }
+
+    .key-black {
+      fill: #4a453a;
+      stroke: #3a362d;
+      stroke-width: 1;
+      cursor: pointer;
+      transition: fill 0.08s ease;
+    }
+
+    .key-black.active {
+      fill: var(--primary);
+    }
+
+    .settings-container {
+      background: var(--card-bg);
+      padding: 16px;
+      border-radius: 24px;
+      box-shadow: 0 6px 20px var(--soft-shadow);
+      margin-top: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      align-items: center;
+      font-size: 0.85rem;
+      max-width: 460px;
+      width: 100%;
+    }
+
+    .settings-panel,
+    .settings-panel-static {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .settings-panel.hidden {
+      display: none;
+    }
+
+    .settings-group {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+    }
+
+    .settings-title {
+      font-family: "Zen Maru Gothic", sans-serif;
+      font-weight: 700;
+      color: var(--primary-dark);
+      width: 100%;
+      text-align: left;
+      margin-bottom: 2px;
+      font-size: 0.88rem;
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .sound-select {
+      appearance: none;
+      -webkit-appearance: none;
+      background: var(--chip-bg);
+      border: none;
+      border-radius: 14px;
+      padding: 8px 32px 8px 14px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-color);
+      cursor: pointer;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%2356755a'><path d='M5.5 7.5l4.5 4.5 4.5-4.5z'/></svg>");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      background-size: 14px;
+      transition: background-color 0.15s;
+    }
+
+    .sound-select:hover { background-color: var(--chip-bg-active); }
+    .sound-select:focus { outline: none; background-color: var(--chip-bg-active); }
+
+    .custom-checkbox, .custom-radio {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+      background: var(--chip-bg);
+      padding: 6px 10px;
+      border-radius: 16px;
+      border: 1.5px solid #dbcab7;
+      transition: all 0.15s ease;
+      font-weight: 500;
+      font-size: 0.78rem;
+      color: var(--muted-text);
+    }
+
+    .custom-checkbox input[type="checkbox"],
+    .custom-radio input[type="radio"] {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 14px;
+      height: 14px;
+      border: 2px solid #cabfa9;
+      border-radius: 4px;
+      outline: none;
+      background-color: rgba(255,255,255,0.6);
+      display: grid;
+      place-content: center;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .custom-radio input[type="radio"] {
+      border-radius: 50%;
+    }
+
+    .custom-checkbox input[type="checkbox"]::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      transform: scale(0);
+      transition: 0.15s transform ease-in-out;
+      box-shadow: inset 1em 1em var(--primary);
+      transform-origin: center;
+      clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+    }
+
+    .custom-radio input[type="radio"]::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      transform: scale(0);
+      transition: 0.15s transform ease-in-out;
+      background-color: var(--primary);
+    }
+
+    .custom-checkbox input[type="checkbox"]:checked,
+    .custom-radio input[type="radio"]:checked {
+      border-color: var(--primary);
+      background-color: #fff;
+    }
+
+    .custom-checkbox input[type="checkbox"]:checked::before,
+    .custom-radio input[type="radio"]:checked::before {
+      transform: scale(1);
+    }
+
+    .custom-checkbox:has(input:checked),
+    .custom-radio:has(input:checked) {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+      box-shadow: 0 2px 7px rgba(224, 122, 79, 0.20);
+    }
+
+    .custom-checkbox:has(input:checked) input[type="checkbox"],
+    .custom-radio:has(input:checked) input[type="radio"] {
+      border-color: rgba(255,255,255,0.85);
+      background-color: rgba(255,255,255,0.15);
+    }
+
+    .custom-checkbox:has(input:checked) input[type="checkbox"]::before {
+      box-shadow: inset 1em 1em #ffffff;
+    }
+
+    .custom-radio:has(input:checked) input[type="radio"]::before {
+      background-color: #ffffff;
+    }
+
+    /* 調号設定パネル（グレーアウト用） */
+    .key-sig-panel {
+      border: none;
+      padding: 12px;
+      border-radius: 18px;
+      background: var(--chip-bg);
+      width: 100%;
+      transition: opacity 0.3s, background-color 0.3s;
+    }
+
+    .key-sig-panel.disabled {
+      opacity: 0.45;
+      pointer-events: none;
+      background: #ece3d3;
+    }
+
+    .preset-btns {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .preset-btns button {
+      background: var(--card-bg);
+      border: none;
+      border-radius: 14px;
+      padding: 4px 10px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--muted-text);
+      cursor: pointer;
+      box-shadow: 0 2px 6px var(--soft-shadow);
+    }
+
+    .preset-btns button:hover {
+      background: var(--chip-bg-active);
+      color: var(--primary-dark);
+    }
+
+    .key-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+      text-align: left;
+    }
+
+    .guide-text {
+      font-size: 0.75rem;
+      color: var(--muted-text);
+      margin-top: 10px;
+      line-height: 1.4;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="series-title">鍵盤で答えて覚えるシリーズ</div>
+
+  <div class="app-mode-tabs">
+    <button class="tab-btn active" onclick="switchAppMode('circle')">音名と位置関係</button>
+    <button class="tab-btn" onclick="switchAppMode('guitar')">ギター指板</button>
+    <button class="tab-btn" onclick="switchAppMode('staff')">五線譜</button>
+  </div>
+
+  <div class="midi-status" id="midiStatus">MIDI機器を探しています...</div>
+
+  <div class="quiz-container" id="quizContainer">
+    <div class="question-box">
+      <div class="question-label" id="questionLabel">出題</div>
+      <div class="question-root" id="questionRoot">--</div>
+      <div class="question-interval" id="questionInterval">--</div>
+    </div>
+
+    <div class="visual-container" id="visualContainer"></div>
+
+    <div class="result-message-area" id="resultMessageArea"></div>
+
+    <div class="keyboard-stage">
+      <div class="keyboard-container" id="keyboardContainer"></div>
+    </div>
+
+  </div>
+
+  <!-- 設定エリア -->
+  <div class="settings-container">
+
+    <!-- 音色設定（共通） -->
+    <div class="settings-panel-static" id="panel-sound">
+      <div class="settings-title">音色 (SOUND)</div>
+      <div class="settings-group" style="gap:14px; align-items:center;">
+        <label style="font-size:0.8rem; font-weight:500; color:var(--text-color);">
+          出題音
+          <select id="timbre-select-question" class="sound-select" style="margin-left:4px;">
+            <option value="fmsine">FMsine</option>
+            <option value="amsine">AMsine</option>
+            <option value="piano">ピアノ(サンプル)</option>
+          </select>
+        </label>
+        <label style="font-size:0.8rem; font-weight:500; color:var(--text-color);">
+          回答音
+          <select id="timbre-select-answer" class="sound-select" style="margin-left:4px;">
+            <option value="fmsine">FMsine</option>
+            <option value="amsine">AMsine</option>
+            <option value="piano">ピアノ(サンプル)</option>
+          </select>
+        </label>
+      </div>
+    </div>
+
+    <!-- 音名と位置関係用設定 -->
+    <div class="settings-panel" id="panel-circle">
+      <div class="settings-title">出題形式 (MODES)</div>
+      <div class="settings-group">
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="mode-clock" checked> 方位図形</label>
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="mode-time" checked> ◯時の音</label>
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="mode-cde" checked> C/D/E</label>
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="mode-do" checked> Do/Re/Mi</label>
+      </div>
+
+      <div class="settings-title">出題する方向 (DIRECTIONS)</div>
+      <div class="settings-group">
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="dir-up" checked> ↑ 上 (高音側)</label>
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="dir-down"> ↓ 下 (低音側)</label>
+      </div>
+
+      <div class="settings-title">出題する度数 (INTERVALS)</div>
+      <div class="settings-group">
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="deg-0" checked> P1</label>
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="deg-1"> m2</label>
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="deg-2"> M2</label>
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="deg-3"> m3</label>
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="deg-4"> M3</label>
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="deg-5"> P4</label>
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="deg-6"> aug4/dim5</label>
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="deg-7"> P5</label>
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="deg-8"> m6</label>
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="deg-9"> M6</label>
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="deg-10"> m7</label>
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="deg-11"> M7</label>
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="deg-12"> P8</label>
+      </div>
+
+      <div class="settings-title">出題する基準音 (ROOTS)</div>
+      <div class="settings-group">
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="root-0" checked> C (Do)</label>
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="root-1" checked> C#/Db (Di/Ra)</label>
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="root-2" checked> D (Re)</label>
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="root-3" checked> D#/Eb (Ri/Me)</label>
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="root-4" checked> E (Mi)</label>
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="root-5" checked> F (Fa)</label>
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="root-6" checked> F#/Gb (Fi/Se)</label>
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="root-7" checked> G (So)</label>
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="root-8" checked> G#/Ab (Si/Le)</label>
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="root-9" checked> A (La)</label>
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="root-10" checked> A#/Bb (Li/Te)</label>
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="root-11" checked> B (Ti)</label>
+      </div>
+    </div>
+
+    <!-- ギター指板用設定 -->
+    <div class="settings-panel hidden" id="panel-guitar">
+      <div class="settings-title">音の種類 (ACCIDENTALS)</div>
+      <div class="settings-group">
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="gt-include-accidental" checked> ♯ / ♭ (変化音) を含める</label>
+      </div>
+
+      <div class="settings-title">出題する弦 (STRINGS)</div>
+      <div class="settings-group">
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="gt-str-6" checked> 6弦 (E)</label>
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="gt-str-5" checked> 5弦 (A)</label>
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="gt-str-4" checked> 4弦 (D)</label>
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="gt-str-3" checked> 3弦 (G)</label>
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="gt-str-2" checked> 2弦 (B)</label>
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="gt-str-1" checked> 1弦 (E)</label>
+      </div>
+
+      <div class="settings-title">出題するフレット範囲 (FRETS)</div>
+      <div class="settings-group">
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="gt-fret-open" checked> 開放弦 (0f)</label>
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="gt-fret-1-3" checked> 1〜3f</label>
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="gt-fret-4-6" checked> 4〜6f</label>
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="gt-fret-7-9" checked> 7〜9f</label>
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="gt-fret-10-12" checked> 10〜12f</label>
+      </div>
+    </div>
+
+    <!-- 五線譜用設定 -->
+    <div class="settings-panel hidden" id="panel-staff">
+      <div class="settings-title">音部記号 (CLEFS)</div>
+      <div class="settings-group">
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="st-clef-treble" checked> ト音記号 𝄞</label>
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="st-clef-bass" checked> ヘ音記号 𝄢</label>
+      </div>
+
+      <div class="settings-title">表示範囲 (RANGE)</div>
+      <div class="settings-group">
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="st-range-inside" checked> 五線部</label>
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="st-range-ledger" checked> 加線部 (上下3本)</label>
+      </div>
+
+      <div class="settings-title">変化音モード (ACCIDENTALS / KEY SIG)</div>
+      <div class="settings-group">
+        <label class="custom-radio"><input type="radio" name="st-acc-mode" class="save-setting-radio" id="st-mode-none" value="none" checked> 変化音なし</label>
+        <label class="custom-radio"><input type="radio" name="st-acc-mode" class="save-setting-radio" id="st-mode-accidental" value="accidental"> 変化音あり</label>
+        <label class="custom-radio"><input type="radio" name="st-acc-mode" class="save-setting-radio" id="st-mode-keysig" value="keysig"> 調号モード</label>
+      </div>
+
+      <!-- 調号モード詳細パネル -->
+      <div class="key-sig-panel disabled" id="keySigPanel">
+        <div class="settings-title" style="border:none; margin-bottom:6px;">調号モード設定</div>
+        <div class="preset-btns">
+          <button type="button" onclick="selectKeys('all')">全選択</button>
+          <button type="button" onclick="selectKeys('none')">全解除</button>
+          <button type="button" onclick="selectKeys('sharp')">♯系のみ</button>
+          <button type="button" onclick="selectKeys('flat')">♭系のみ</button>
+        </div>
+        
+        <div class="key-grid" id="keyChecklist">
+          <label class="custom-checkbox"><input type="checkbox" class="save-setting key-item" data-type="none" id="key-C" checked> C / Am (調号なし)</label>
+          <div></div>
+          
+          <label class="custom-checkbox"><input type="checkbox" class="save-setting key-item" data-type="sharp" id="key-G" checked> G / Em (♯1)</label>
+          <label class="custom-checkbox"><input type="checkbox" class="save-setting key-item" data-type="flat" id="key-F" checked> F / Dm (♭1)</label>
+          
+          <label class="custom-checkbox"><input type="checkbox" class="save-setting key-item" data-type="sharp" id="key-D" checked> D / Bm (♯2)</label>
+          <label class="custom-checkbox"><input type="checkbox" class="save-setting key-item" data-type="flat" id="key-Bb" checked> B♭ / Gm (♭2)</label>
+          
+          <label class="custom-checkbox"><input type="checkbox" class="save-setting key-item" data-type="sharp" id="key-A" checked> A / F♯m (♯3)</label>
+          <label class="custom-checkbox"><input type="checkbox" class="save-setting key-item" data-type="flat" id="key-Eb" checked> E♭ / Cm (♭3)</label>
+          
+          <label class="custom-checkbox"><input type="checkbox" class="save-setting key-item" data-type="sharp" id="key-E" checked> E / C♯m (♯4)</label>
+          <label class="custom-checkbox"><input type="checkbox" class="save-setting key-item" data-type="flat" id="key-Ab" checked> A♭ / Fm (♭4)</label>
+          
+          <label class="custom-checkbox"><input type="checkbox" class="save-setting key-item" data-type="sharp" id="key-B" checked> B / G♯m (♯5)</label>
+          <label class="custom-checkbox"><input type="checkbox" class="save-setting key-item" data-type="flat" id="key-Db" checked> D♭ / B♭m (♭5)</label>
+          
+          <label class="custom-checkbox"><input type="checkbox" class="save-setting key-item" data-type="sharp" id="key-Fsh" checked> F♯ / D♯m (♯6)</label>
+          <label class="custom-checkbox"><input type="checkbox" class="save-setting key-item" data-type="flat" id="key-Gb" checked> G♭ / E♭m (♭6)</label>
+          
+          <label class="custom-checkbox"><input type="checkbox" class="save-setting key-item" data-type="sharp" id="key-Csh" checked> C♯ / A♯m (♯7)</label>
+          <label class="custom-checkbox"><input type="checkbox" class="save-setting key-item" data-type="flat" id="key-Cb" checked> C♭ / A♭m (♭7)</label>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="guide-text">
+    ※ 画面の鍵盤タップ、またはMIDIキーボードで回答できます！
+  </div>
+
+  <script>
+    const NOTES = [
+      { id: 0,  clock: 0,  freq: "C4",  isAccidental: false, doNames: ["Do"],             cdeNames: ["C"] },
+      { id: 1,  clock: 1,  freq: "C#4", isAccidental: true,  doNames: ["Di", "Ra"],       cdeNames: ["C#", "Db"] },
+      { id: 2,  clock: 2,  freq: "D4",  isAccidental: false, doNames: ["Re"],             cdeNames: ["D"] },
+      { id: 3,  clock: 3,  freq: "D#4", isAccidental: true,  doNames: ["Ri", "Me"],       cdeNames: ["D#", "Eb"] },
+      { id: 4,  clock: 4,  freq: "E4",  isAccidental: false, doNames: ["Mi"],             cdeNames: ["E"] },
+      { id: 5,  clock: 5,  freq: "F4",  isAccidental: false, doNames: ["Fa"],             cdeNames: ["F"] },
+      { id: 6,  clock: 6,  freq: "F#4", isAccidental: true,  doNames: ["Fi", "Se"],       cdeNames: ["F#", "Gb"] },
+      { id: 7,  clock: 7,  freq: "G4",  isAccidental: false, doNames: ["So"],             cdeNames: ["G"] },
+      { id: 8,  clock: 8,  freq: "G#4", isAccidental: true,  doNames: ["Si", "Le"],       cdeNames: ["G#", "Ab"] },
+      { id: 9,  clock: 9,  freq: "A4",  isAccidental: false, doNames: ["La"],             cdeNames: ["A"] },
+      { id: 10, clock: 10, freq: "A#4", isAccidental: true,  doNames: ["Li", "Te"],       cdeNames: ["A#", "Bb"] },
+      { id: 11, clock: 11, freq: "B4",  isAccidental: false, doNames: ["Ti"],             cdeNames: ["B"] }
+    ];
+
+    const GUITAR_STRINGS = [
+      { stringNum: 1, openPitch: 4, openFreq: "E4" },
+      { stringNum: 2, openPitch: 11, openFreq: "B3" },
+      { stringNum: 3, openPitch: 7, openFreq: "G3" },
+      { stringNum: 4, openPitch: 2, openFreq: "D3" },
+      { stringNum: 5, openPitch: 9, openFreq: "A2" },
+      { stringNum: 6, openPitch: 4, openFreq: "E2" }
+    ];
+
+    const KEY_DEFINITIONS = {
+      "C":  { name: "C / Am",   type: "none",  count: 0, sharps: [], flats: [] },
+      "G":  { name: "G / Em",   type: "sharp", count: 1, sharps: ["F"], flats: [], treblePos: [8], bassPos: [6] },
+      "D":  { name: "D / Bm",   type: "sharp", count: 2, sharps: ["F", "C"], flats: [], treblePos: [8, 5], bassPos: [6, 3] },
+      "A":  { name: "A / F#m",  type: "sharp", count: 3, sharps: ["F", "C", "G"], flats: [], treblePos: [8, 5, 9], bassPos: [6, 3, 7] },
+      "E":  { name: "E / C#m",  type: "sharp", count: 4, sharps: ["F", "C", "G", "D"], flats: [], treblePos: [8, 5, 9, 6], bassPos: [6, 3, 7, 4] },
+      "B":  { name: "B / G#m",  type: "sharp", count: 5, sharps: ["F", "C", "G", "D", "A"], flats: [], treblePos: [8, 5, 9, 6, 3], bassPos: [6, 3, 7, 4, 1] },
+      "Fsh":{ name: "F♯ / D♯m", type: "sharp", count: 6, sharps: ["F", "C", "G", "D", "A", "E"], flats: [], treblePos: [8, 5, 9, 6, 3, 7], bassPos: [6, 3, 7, 4, 1, 5] },
+      "Csh":{ name: "C♯ / A♯m", type: "sharp", count: 7, sharps: ["F", "C", "G", "D", "A", "E", "B"], flats: [], treblePos: [8, 5, 9, 6, 3, 7, 4], bassPos: [6, 3, 7, 4, 1, 5, 2] },
+
+      "F":  { name: "F / Dm",   type: "flat",  count: 1, sharps: [], flats: ["B"], treblePos: [4], bassPos: [2] },
+      "Bb": { name: "B♭ / Gm",  type: "flat",  count: 2, sharps: [], flats: ["B", "E"], treblePos: [4, 7], bassPos: [2, 5] },
+      "Eb": { name: "E♭ / Cm",  type: "flat",  count: 3, sharps: [], flats: ["B", "E", "A"], treblePos: [4, 7, 3], bassPos: [2, 5, 1] },
+      "Ab": { name: "A♭ / Fm",  type: "flat",  count: 4, sharps: [], flats: ["B", "E", "A", "D"], treblePos: [4, 7, 3, 6], bassPos: [2, 5, 1, 4] },
+      "Db": { name: "D♭ / B♭m", type: "flat",  count: 5, sharps: [], flats: ["B", "E", "A", "D", "G"], treblePos: [4, 7, 3, 6, 2], bassPos: [2, 5, 1, 4, 0] },
+      "Gb": { name: "G♭ / E♭m", type: "flat",  count: 6, sharps: [], flats: ["B", "E", "A", "D", "G", "C"], treblePos: [4, 7, 3, 6, 2, 5], bassPos: [2, 5, 1, 4, 0, 3] },
+      "Cb": { name: "C♭ / A♭m", type: "flat",  count: 7, sharps: [], flats: ["B", "E", "A", "D", "G", "C", "F"], treblePos: [4, 7, 3, 6, 2, 5, 1], bassPos: [2, 5, 1, 4, 0, 3, -1] }
+    };
+
+    // 五線譜用音符定義
+    const STAFF_TREBLE_DICT = [
+      { index: -6, note: "F3",  pitchClass: 5,  letter: "F", accidental: null },
+      { index: -6, note: "F#3", pitchClass: 6,  letter: "F", accidental: "♯" },
+      { index: -5, note: "G3",  pitchClass: 7,  letter: "G", accidental: null },
+      { index: -5, note: "Gb3", pitchClass: 6,  letter: "G", accidental: "♭" },
+      { index: -5, note: "G#3", pitchClass: 8,  letter: "G", accidental: "♯" },
+      { index: -4, note: "A3",  pitchClass: 9,  letter: "A", accidental: null },
+      { index: -4, note: "Ab3", pitchClass: 8,  letter: "A", accidental: "♭" },
+      { index: -4, note: "A#3", pitchClass: 10, letter: "A", accidental: "♯" },
+      { index: -3, note: "B3",  pitchClass: 11, letter: "B", accidental: null },
+      { index: -3, note: "Bb3", pitchClass: 10, letter: "B", accidental: "♭" },
+      { index: -2, note: "C4",  pitchClass: 0,  letter: "C", accidental: null },
+      { index: -2, note: "C#4", pitchClass: 1,  letter: "C", accidental: "♯" },
+      { index: -1, note: "D4",  pitchClass: 2,  letter: "D", accidental: null },
+      { index: -1, note: "Db4", pitchClass: 1,  letter: "D", accidental: "♭" },
+      { index: -1, note: "D#4", pitchClass: 3,  letter: "D", accidental: "♯" },
+      { index: 0,  note: "E4",  pitchClass: 4,  letter: "E", accidental: null },
+      { index: 0,  note: "Eb4", pitchClass: 3,  letter: "E", accidental: "♭" },
+      { index: 1,  note: "F4",  pitchClass: 5,  letter: "F", accidental: null },
+      { index: 1,  note: "F#4", pitchClass: 6,  letter: "F", accidental: "♯" },
+      { index: 2,  note: "G4",  pitchClass: 7,  letter: "G", accidental: null },
+      { index: 2,  note: "Gb4", pitchClass: 6,  letter: "G", accidental: "♭" },
+      { index: 2,  note: "G#4", pitchClass: 8,  letter: "G", accidental: "♯" },
+      { index: 3,  note: "A4",  pitchClass: 9,  letter: "A", accidental: null },
+      { index: 3,  note: "Ab4", pitchClass: 8,  letter: "A", accidental: "♭" },
+      { index: 3,  note: "A#4", pitchClass: 10, letter: "A", accidental: "♯" },
+      { index: 4,  note: "B4",  pitchClass: 11, letter: "B", accidental: null },
+      { index: 4,  note: "Bb4", pitchClass: 10, letter: "B", accidental: "♭" },
+      { index: 5,  note: "C5",  pitchClass: 0,  letter: "C", accidental: null },
+      { index: 5,  note: "C#5", pitchClass: 1,  letter: "C", accidental: "♯" },
+      { index: 6,  note: "D5",  pitchClass: 2,  letter: "D", accidental: null },
+      { index: 6,  note: "Db5", pitchClass: 1,  letter: "D", accidental: "♭" },
+      { index: 6,  note: "D#5", pitchClass: 3,  letter: "D", accidental: "♯" },
+      { index: 7,  note: "E5",  pitchClass: 4,  letter: "E", accidental: null },
+      { index: 7,  note: "Eb5", pitchClass: 3,  letter: "E", accidental: "♭" },
+      { index: 8,  note: "F5",  pitchClass: 5,  letter: "F", accidental: null },
+      { index: 8,  note: "F#5", pitchClass: 6,  letter: "F", accidental: "♯" },
+      { index: 9,  note: "G5",  pitchClass: 7,  letter: "G", accidental: null },
+      { index: 9,  note: "Gb5", pitchClass: 6,  letter: "G", accidental: "♭" },
+      { index: 9,  note: "G#5", pitchClass: 8,  letter: "G", accidental: "♯" },
+      { index: 10, note: "A5",  pitchClass: 9,  letter: "A", accidental: null },
+      { index: 10, note: "Ab5", pitchClass: 8,  letter: "A", accidental: "♭" },
+      { index: 10, note: "A#5", pitchClass: 10, letter: "A", accidental: "♯" },
+      { index: 11, note: "B5",  pitchClass: 11, letter: "B", accidental: null },
+      { index: 11, note: "Bb5", pitchClass: 10, letter: "B", accidental: "♭" },
+      { index: 12, note: "C6",  pitchClass: 0,  letter: "C", accidental: null },
+      { index: 12, note: "C#6", pitchClass: 1,  letter: "C", accidental: "♯" },
+      { index: 13, note: "D6",  pitchClass: 2,  letter: "D", accidental: null },
+      { index: 13, note: "Db6", pitchClass: 1,  letter: "D", accidental: "♭" },
+      { index: 13, note: "D#6", pitchClass: 3,  letter: "D", accidental: "♯" },
+      { index: 14, note: "E6",  pitchClass: 4,  letter: "E", accidental: null },
+      { index: 14, note: "Eb6", pitchClass: 3,  letter: "E", accidental: "♭" }
+    ];
+
+    const STAFF_BASS_DICT = [
+      { index: -6, note: "A1",  pitchClass: 9,  letter: "A", accidental: null },
+      { index: -6, note: "Ab1", pitchClass: 8,  letter: "A", accidental: "♭" },
+      { index: -6, note: "A#1", pitchClass: 10, letter: "A", accidental: "♯" },
+      { index: -5, note: "B1",  pitchClass: 11, letter: "B", accidental: null },
+      { index: -5, note: "Bb1", pitchClass: 10, letter: "B", accidental: "♭" },
+      { index: -4, note: "C2",  pitchClass: 0,  letter: "C", accidental: null },
+      { index: -4, note: "C#2", pitchClass: 1,  letter: "C", accidental: "♯" },
+      { index: -3, note: "D2",  pitchClass: 2,  letter: "D", accidental: null },
+      { index: -3, note: "Db2", pitchClass: 1,  letter: "D", accidental: "♭" },
+      { index: -3, note: "D#2", pitchClass: 3,  letter: "D", accidental: "♯" },
+      { index: -2, note: "E2",  pitchClass: 4,  letter: "E", accidental: null },
+      { index: -2, note: "Eb2", pitchClass: 3,  letter: "E", accidental: "♭" },
+      { index: -1, note: "F2",  pitchClass: 5,  letter: "F", accidental: null },
+      { index: -1, note: "F#2", pitchClass: 6,  letter: "F", accidental: "♯" },
+      { index: 0,  note: "G2",  pitchClass: 7,  letter: "G", accidental: null },
+      { index: 0,  note: "Gb2", pitchClass: 6,  letter: "G", accidental: "♭" },
+      { index: 0,  note: "G#2", pitchClass: 8,  letter: "G", accidental: "♯" },
+      { index: 1,  note: "A2",  pitchClass: 9,  letter: "A", accidental: null },
+      { index: 1,  note: "Ab2", pitchClass: 8,  letter: "A", accidental: "♭" },
+      { index: 1,  note: "A#2", pitchClass: 10, letter: "A", accidental: "♯" },
+      { index: 2,  note: "B2",  pitchClass: 11, letter: "B", accidental: null },
+      { index: 2,  note: "Bb2", pitchClass: 10, letter: "B", accidental: "♭" },
+      { index: 3,  note: "C3",  pitchClass: 0,  letter: "C", accidental: null },
+      { index: 3,  note: "C#3", pitchClass: 1,  letter: "C", accidental: "♯" },
+      { index: 4,  note: "D3",  pitchClass: 2,  letter: "D", accidental: null },
+      { index: 4,  note: "Db3", pitchClass: 1,  letter: "D", accidental: "♭" },
+      { index: 4,  note: "D#3", pitchClass: 3,  letter: "D", accidental: "♯" },
+      { index: 5,  note: "E3",  pitchClass: 4,  letter: "E", accidental: null },
+      { index: 5,  note: "Eb3", pitchClass: 3,  letter: "E", accidental: "♭" },
+      { index: 6,  note: "F3",  pitchClass: 5,  letter: "F", accidental: null },
+      { index: 6,  note: "F#3", pitchClass: 6,  letter: "F", accidental: "♯" },
+      { index: 7,  note: "G3",  pitchClass: 7,  letter: "G", accidental: null },
+      { index: 7,  note: "Gb3", pitchClass: 6,  letter: "G", accidental: "♭" },
+      { index: 7,  note: "G#3", pitchClass: 8,  letter: "G", accidental: "♯" },
+      { index: 8,  note: "A3",  pitchClass: 9,  letter: "A", accidental: null },
+      { index: 8,  note: "Ab3", pitchClass: 8,  letter: "A", accidental: "♭" },
+      { index: 8,  note: "A#3", pitchClass: 10, letter: "A", accidental: "♯" },
+      { index: 9,  note: "B3",  pitchClass: 11, letter: "B", accidental: null },
+      { index: 9,  note: "Bb3", pitchClass: 10, letter: "B", accidental: "♭" },
+      { index: 10, note: "C4",  pitchClass: 0,  letter: "C", accidental: null },
+      { index: 10, note: "C#4", pitchClass: 1,  letter: "C", accidental: "♯" },
+      { index: 11, note: "D4",  pitchClass: 2,  letter: "D", accidental: null },
+      { index: 11, note: "Db4", pitchClass: 1,  letter: "D", accidental: "♭" },
+      { index: 11, note: "D#4", pitchClass: 3,  letter: "D", accidental: "♯" },
+      { index: 12, note: "E4",  pitchClass: 4,  letter: "E", accidental: null },
+      { index: 12, note: "Eb4", pitchClass: 3,  letter: "E", accidental: "♭" },
+      { index: 13, note: "F4",  pitchClass: 5,  letter: "F", accidental: null },
+      { index: 13, note: "F#4", pitchClass: 6,  letter: "F", accidental: "♯" },
+      { index: 14, note: "G4",  pitchClass: 7,  letter: "G", accidental: null },
+      { index: 14, note: "Gb4", pitchClass: 6,  letter: "G", accidental: "♭" }
+    ];
+
+    const INTERVAL_LABELS = [
+      "P1", "m2", "M2", "m3", "M3", "P4", "aug4/dim5", "P5", "m6", "M6", "m7", "M7", "P8"
+    ];
+
+    let currentAppMode = 'circle'; 
+
+    let rootNote = null;
+    let currentInterval = 0;
+    let currentDirection = 1;
+
+    let guitarTarget = { string: 6, fret: 0, pitchClass: 4, freq: "E2" };
+
+    let targetNote = null;
+    let targetFullNote = "";
+    let isAnswered = false;
+    let score = 0;
+    let total = 0;
+    let midiAccessGlobal = null;
+
+    // ピアノサンプル音源(Salamander Grand Piano)
+    const PIANO_SAMPLE_URLS = {
+      "A0": "A0.mp3", "C1": "C1.mp3", "D#1": "Ds1.mp3", "F#1": "Fs1.mp3",
+      "A1": "A1.mp3", "C2": "C2.mp3", "D#2": "Ds2.mp3", "F#2": "Fs2.mp3",
+      "A2": "A2.mp3", "C3": "C3.mp3", "D#3": "Ds3.mp3", "F#3": "Fs3.mp3",
+      "A3": "A3.mp3", "C4": "C4.mp3", "D#4": "Ds4.mp3", "F#4": "Fs4.mp3",
+      "A4": "A4.mp3", "C5": "C5.mp3", "D#5": "Ds5.mp3", "F#5": "Fs5.mp3",
+      "A5": "A5.mp3", "C6": "C6.mp3", "D#6": "Ds6.mp3", "F#6": "Fs6.mp3",
+      "A6": "A6.mp3", "C7": "C7.mp3", "D#7": "Ds7.mp3", "F#7": "Fs7.mp3",
+      "A7": "A7.mp3", "C8": "C8.mp3"
+    };
+
+    // --- ノイズ対策済みのシンセプリセット定義 ---
+    const TIMBRE_PRESETS = {
+      fmsine: {
+        label: "FMsine",
+        engine: "fm",
+        params: {
+          volume: -5,
+          detune: 0,
+          portamento: 0,
+          harmonicity: 2,
+          oscillator: { partialCount: 0, partials: [], phase: 0, type: "sine" },
+          envelope: {
+            attack: 0.02, attackCurve: "linear",
+            decay: 0.25, decayCurve: "exponential",
+            release: 0.35, releaseCurve: "exponential",
+            sustain: 0.6
+          },
+          modulation: { partialCount: 0, partials: [], phase: 0, type: "sine" },
+          modulationEnvelope: {
+            attack: 0.02, attackCurve: "linear",
+            decay: 0.25, decayCurve: "exponential",
+            release: 0.35, releaseCurve: "exponential",
+            sustain: 0.6
+          },
+          modulationIndex: 3
+        }
+      },
+      amsine: {
+        label: "AMsine",
+        engine: "default",
+        params: {
+          volume: -5,
+          detune: 0,
+          portamento: 0,
+          envelope: {
+            attack: 0.03, attackCurve: "linear",
+            decay: 0.25, decayCurve: "exponential",
+            release: 0.4, releaseCurve: "exponential",
+            sustain: 0.4
+          },
+          oscillator: {
+            partialCount: 0, partials: [], phase: 0,
+            type: "amsine", harmonicity: 1, modulationType: "sine"
+          }
+        }
+      },
+      piano: {
+        label: "ピアノ(サンプル)",
+        engine: "piano",
+        params: null
+      }
+    };
+
+    // --- Web Audio / Tone.js 初期化（Android Chrome / Brave 向けバッファ・レイテンシ最適化） ---
+    const rawAudioContext = new (window.AudioContext || window.webkitAudioContext)({
+      latencyHint: "playback"
+    });
+    Tone.setContext(new Tone.Context({
+      context: rawAudioContext,
+      lookAhead: 0.1
+    }));
+
+    // マスターボリュームとリミッター
+    const masterVol = new Tone.Volume(-4).toDestination();
+    const limiter = new Tone.Limiter(-1.5).connect(masterVol);
+
+    function makeEnginePair() {
+      return {
+        default: new Tone.PolySynth(Tone.Synth, { maxPolyphony: 8 }).connect(limiter),
+        fm: new Tone.PolySynth(Tone.FMSynth, { maxPolyphony: 8 }).connect(limiter),
+        piano: new Tone.Sampler({
+          urls: PIANO_SAMPLE_URLS,
+          baseUrl: "https://tonejs.github.io/audio/salamander/",
+          release: 0.8
+        }).connect(limiter)
+      };
+    }
+    const questionEngines = makeEnginePair();
+    const answerEngines = makeEnginePair();
+
+    let questionSynth = questionEngines.default;
+    let answerSynth = answerEngines.default;
+
+    let currentTimbreQuestion = localStorage.getItem('timbre_question_v1')
+      || localStorage.getItem('timbre_preset_v1') || 'amsine';
+    let currentTimbreAnswer = localStorage.getItem('timbre_answer_v1')
+      || localStorage.getItem('timbre_preset_v1') || 'amsine';
+    if (currentTimbreQuestion === 'amtriangle') currentTimbreQuestion = 'amsine';
+    if (currentTimbreAnswer === 'amtriangle') currentTimbreAnswer = 'amsine';
+
+    function applyTimbre(role, name) {
+      const preset = TIMBRE_PRESETS[name] || TIMBRE_PRESETS.amsine;
+      const engines = (role === 'question') ? questionEngines : answerEngines;
+      const engine = (preset.engine === 'fm') ? engines.fm
+        : (preset.engine === 'piano') ? engines.piano
+        : engines.default;
+
+      if (typeof engine.releaseAll === 'function') engine.releaseAll();
+      if (preset.params) engine.set(preset.params);
+      if (role === 'question') {
+        questionSynth = engine;
+        currentTimbreQuestion = name;
+        localStorage.setItem('timbre_question_v1', name);
+      } else {
+        answerSynth = engine;
+        currentTimbreAnswer = name;
+        localStorage.setItem('timbre_answer_v1', name);
+      }
+    }
+
+    applyTimbre('question', currentTimbreQuestion);
+    applyTimbre('answer', currentTimbreAnswer);
+
+    function ensureAudioStarted() {
+      if (Tone.context.state !== 'running') {
+        Tone.start();
+      }
+    }
+
+    function bassAwareVelocity(freqHz) {
+      const lowRef = 100, highRef = 280;
+      let t = (freqHz - lowRef) / (highRef - lowRef);
+      t = Math.min(1, Math.max(0, t));
+      return 0.85 - t * 0.25;
+    }
+
+    function switchAppMode(mode) {
+      currentAppMode = mode;
+      
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.settings-panel').forEach(panel => panel.classList.add('hidden'));
+
+      if (mode === 'circle') {
+        document.querySelectorAll('.tab-btn')[0].classList.add('active');
+        document.getElementById('panel-circle').classList.remove('hidden');
+      } else if (mode === 'guitar') {
+        document.querySelectorAll('.tab-btn')[1].classList.add('active');
+        document.getElementById('panel-guitar').classList.remove('hidden');
+      } else if (mode === 'staff') {
+        document.querySelectorAll('.tab-btn')[2].classList.add('active');
+        document.getElementById('panel-staff').classList.remove('hidden');
+      }
+
+      nextQuestion();
+    }
+
+    function updateKeySigPanelState() {
+      const isKeySig = document.getElementById('st-mode-keysig').checked;
+      const keySigPanel = document.getElementById('keySigPanel');
+      if (isKeySig) {
+        keySigPanel.classList.remove('disabled');
+      } else {
+        keySigPanel.classList.add('disabled');
+      }
+    }
+
+    function saveSettings() {
+      const settings = {};
+      document.querySelectorAll('.save-setting').forEach(cb => {
+        settings[cb.id] = cb.checked;
+      });
+      document.querySelectorAll('.save-setting-radio').forEach(radio => {
+        if (radio.checked) settings[radio.name] = radio.id;
+      });
+      localStorage.setItem('key_master_settings_v7', JSON.stringify(settings));
+    }
+
+    function loadSettings() {
+      const saved = localStorage.getItem('key_master_settings_v7');
+      if (saved) {
+        try {
+          const settings = JSON.parse(saved);
+          Object.keys(settings).forEach(key => {
+            const el = document.getElementById(settings[key]) || document.getElementById(key);
+            if (el) {
+              if (el.type === 'checkbox') el.checked = settings[key];
+              if (el.type === 'radio') el.checked = true;
+            }
+          });
+        } catch(e) { console.error(e); }
+      }
+      updateKeySigPanelState();
+    }
+
+    function selectKeys(type) {
+      const checkboxes = document.querySelectorAll('.key-item');
+      checkboxes.forEach(cb => {
+        if (type === 'all') cb.checked = true;
+        if (type === 'none') cb.checked = false;
+        if (type === 'sharp') cb.checked = (cb.dataset.type === 'sharp' || cb.dataset.type === 'none');
+        if (type === 'flat') cb.checked = (cb.dataset.type === 'flat' || cb.dataset.type === 'none');
+      });
+      saveSettings();
+      if (!isAnswered && currentAppMode === 'staff') nextQuestion();
+    }
+
+    function renderSVG(rootId, highlightId, pressedId = null, showHighlight = false, size = 130) {
+      const center = size / 2;
+      const radius = size * 0.42;
+      let baseLines = '';
+      let highlightLines = '';
+
+      for (let i = 0; i < 12; i++) {
+        const angle = (i * 30 - 90) * (Math.PI / 180);
+        const x2 = center + radius * Math.cos(angle);
+        const y2 = center + radius * Math.sin(angle);
+
+        if (!isAnswered) {
+          if (showHighlight && i === highlightId) {
+            highlightLines += `<line x1="${center}" y1="${center}" x2="${x2}" y2="${y2}" 
+                                     stroke="var(--highlight-line)" stroke-width="8" stroke-linecap="round"/>`;
+          } else {
+            baseLines += `<line x1="${center}" y1="${center}" x2="${x2}" y2="${y2}" 
+                                stroke="var(--line-base)" stroke-width="4" stroke-linecap="round"/>`;
+          }
+        } else {
+          if (i === targetNote.id) {
+            highlightLines += `<line x1="${center}" y1="${center}" x2="${x2}" y2="${y2}" 
+                                     stroke="var(--correct-line)" stroke-width="8" stroke-linecap="round"/>`;
+          } else if (pressedId !== null && pressedId !== targetNote.id && i === pressedId) {
+            highlightLines += `<line x1="${center}" y1="${center}" x2="${x2}" y2="${y2}" 
+                                     stroke="var(--wrong-line)" stroke-width="8" stroke-linecap="round"/>`;
+          } else {
+            baseLines += `<line x1="${center}" y1="${center}" x2="${x2}" y2="${y2}" 
+                                stroke="var(--line-base)" stroke-width="4" stroke-linecap="round"/>`;
+          }
+        }
+      }
+
+      const centerCircle = `<circle cx="${center}" cy="${center}" r="12" fill="var(--bg-color)" stroke="var(--line-base)" stroke-width="2.5"/>`;
+
+      document.getElementById('visualContainer').innerHTML = 
+        `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+          ${baseLines}
+          ${highlightLines}
+          ${centerCircle}
+        </svg>`;
+    }
+
+    function renderGuitarFretboard(targetStr, targetFret) {
+      const width = 420;
+      const height = 150;
+
+      const boardTop = 14;
+      const boardBottom = 118;
+      const left = 44;
+      const right = 404;
+      const nutWidth = 8;
+      const numFrets = 12;
+
+      const scaleLen = (right - left) / (1 - Math.pow(2, -numFrets / 12));
+      const fretX = (n) => left + scaleLen * (1 - Math.pow(2, -n / 12));
+      const cellCenter = (f) => f === 0 ? (left - 18) : (fretX(f - 1) + fretX(f)) / 2;
+
+      const stringMargin = 7;
+      const stringYs = [0, 1, 2, 3, 4, 5].map(i => boardTop + stringMargin + i * (boardBottom - boardTop - stringMargin * 2) / 5);
+      const stringColors = ["#d8d3c4", "#cbc4b0", "#b5a880", "#9f8f66", "#89774f", "#736039"];
+      const stringWidths = [0.9, 1.15, 1.4, 1.7, 2.0, 2.3];
+
+      let svg = `<defs>
+        <linearGradient id="fbRosewood" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" style="stop-color:var(--fretboard-wood-top)"/>
+          <stop offset="100%" style="stop-color:var(--fretboard-wood-bottom)"/>
+        </linearGradient>
+      </defs>`;
+
+      svg += `<rect x="${left}" y="${boardTop}" width="${right - left}" height="${boardBottom - boardTop}" fill="url(#fbRosewood)" rx="4"/>`;
+
+      const midX = (left + right) / 2;
+      const grainYs = [24, 45, 66, 87, 108];
+      grainYs.forEach((y, i) => {
+        const bow = (i % 2 === 0) ? -5 : 5;
+        const color = (i % 2 === 0) ? 'var(--grain-color-a)' : 'var(--grain-color-b)';
+        svg += `<path d="M${left},${y} Q${midX},${y + bow} ${right},${y}" stroke="${color}" stroke-width="1" opacity="0.4" fill="none"/>`;
+      });
+
+      const inlayRadius = 3.6;
+      [3, 5, 7, 9].forEach(f => {
+        svg += `<circle cx="${cellCenter(f)}" cy="${(boardTop + boardBottom) / 2}" r="${inlayRadius}" fill="var(--inlay-color)" opacity="0.85"/>`;
+      });
+      svg += `<circle cx="${cellCenter(12)}" cy="${boardTop + (boardBottom - boardTop) * 0.28}" r="${inlayRadius}" fill="var(--inlay-color)" opacity="0.85"/>`;
+      svg += `<circle cx="${cellCenter(12)}" cy="${boardTop + (boardBottom - boardTop) * 0.72}" r="${inlayRadius}" fill="var(--inlay-color)" opacity="0.85"/>`;
+
+      stringYs.forEach((y, i) => {
+        svg += `<line x1="${left}" y1="${y}" x2="${right}" y2="${y}" stroke="${stringColors[i]}" stroke-width="${stringWidths[i]}"/>`;
+      });
+
+      for (let f = 1; f <= numFrets; f++) {
+        const x = fretX(f);
+        svg += `<line x1="${x}" y1="${boardTop + 2}" x2="${x}" y2="${boardBottom - 2}" stroke="var(--fret-silver)" stroke-width="2"/>`;
+      }
+
+      svg += `<rect x="${left - nutWidth}" y="${boardTop - 2}" width="${nutWidth}" height="${boardBottom - boardTop + 4}" rx="2" fill="var(--nut-color)" stroke="#c9bfa4" stroke-width="0.5"/>`;
+
+      for (let f = 0; f <= numFrets; f++) {
+        const x = (f === 0) ? left : cellCenter(f);
+        svg += `<text x="${x}" y="${height - 4}" font-size="10" fill="#8a7a5a" text-anchor="middle" font-family="sans-serif">${f}</text>`;
+      }
+
+      const targetSIndex = targetStr - 1;
+      const targetY = stringYs[targetSIndex];
+      const targetX = cellCenter(targetFret);
+      if (targetFret === 0) {
+        svg += `<circle cx="${targetX}" cy="${targetY}" r="6.5" fill="none" stroke="var(--target-dot)" stroke-width="2.5"/>`;
+      } else {
+        svg += `<circle cx="${targetX}" cy="${targetY}" r="6.5" fill="var(--target-dot)"/>`;
+      }
+
+      document.getElementById('visualContainer').innerHTML =
+        `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+          ${svg}
+        </svg>`;
+    }
+
+    function renderStaffNotation(clef, noteItem, keyConfig = null) {
+      const width = 320;
+      const height = 170;
+      const container = document.getElementById('visualContainer');
+      container.innerHTML = '';
+
+      if (!window.Vex || !window.Vex.Flow) {
+        container.innerHTML = '<div style="padding:24px;color:#a85f45;font-weight:bold;font-size:0.9rem;">五線譜ライブラリを読み込めませんでした。</div>';
+        return;
+      }
+
+      const renderer = new Vex.Flow.Renderer(container, Vex.Flow.Renderer.Backends.SVG);
+      renderer.resize(width, height);
+      const context = renderer.getContext();
+      context.setFillStyle('#5c5548');
+      context.setStrokeStyle('#5c5548');
+
+      const staveX = 38;
+      const staveY = 42;
+      const staveWidth = 250;
+      const stave = new Vex.Flow.Stave(staveX, staveY, staveWidth);
+
+      stave.setBegBarType(Vex.Flow.Barline.type.NONE);
+      stave.setEndBarType(Vex.Flow.Barline.type.NONE);
+
+      stave.addClef(clef === 'treble' ? 'treble' : 'bass');
+
+      if (keyConfig && keyConfig.count > 0) {
+        const sharpKeys = ['G', 'D', 'A', 'E', 'B', 'F#', 'C#'];
+        const flatKeys  = ['F', 'Bb', 'Eb', 'Ab', 'Db', 'Gb', 'Cb'];
+        const keyName = keyConfig.type === 'sharp'
+          ? sharpKeys[keyConfig.count - 1]
+          : flatKeys[keyConfig.count - 1];
+        if (keyName) stave.addKeySignature(keyName);
+      }
+
+      stave.setContext(context).draw();
+
+      const m = noteItem.note.match(/^([A-G])([#b]?)(-?\d+)$/);
+      if (!m) return;
+
+      const letter = m[1].toLowerCase();
+      const accidental = m[2];
+      const octave = m[3];
+      const key = `${letter}/${octave}`;
+
+      const note = new Vex.Flow.StaveNote({
+        clef: clef === 'treble' ? 'treble' : 'bass',
+        keys: [key],
+        duration: 'q',
+        autoStem: true
+      });
+
+      if (accidental === '#' || accidental === 'b') {
+        note.addModifier(new Vex.Flow.Accidental(accidental === '#' ? '#' : 'b'), 0);
+      }
+
+      const voice = new Vex.Flow.Voice({ num_beats: 1, beat_value: 4 });
+      voice.addTickables([note]);
+      new Vex.Flow.Formatter().joinVoices([voice]).format([voice], staveWidth - 80);
+      voice.draw(context, stave);
+    }
+
+    function renderInteractiveKeyboard() {
+      const wWidth = 46;
+      const wHeight = 126;
+      const bWidth = 28;
+      const bHeight = 78;
+      const svgWidth = wWidth * 7;
+
+      const whiteKeys = [
+        { id: 0, x: 0 }, { id: 2, x: wWidth }, { id: 4, x: wWidth * 2 },
+        { id: 5, x: wWidth * 3 }, { id: 7, x: wWidth * 4 }, { id: 9, x: wWidth * 5 }, { id: 11, x: wWidth * 6 }
+      ];
+
+      const blackKeys = [
+        { id: 1, x: wWidth - bWidth / 2 }, { id: 3, x: wWidth * 2 - bWidth / 2 },
+        { id: 6, x: wWidth * 4 - bWidth / 2 }, { id: 8, x: wWidth * 5 - bWidth / 2 }, { id: 10, x: wWidth * 6 - bWidth / 2 }
+      ];
+
+      let whiteSvg = '';
+      whiteKeys.forEach(k => {
+        whiteSvg += `<rect class="key-white" data-id="${k.id}" x="${k.x}" y="0" width="${wWidth}" height="${wHeight}" rx="4"/>`;
+      });
+
+      let blackSvg = '';
+      blackKeys.forEach(k => {
+        blackSvg += `<rect class="key-black" data-id="${k.id}" x="${k.x}" y="0" width="${bWidth}" height="${bHeight}" rx="3"/>`;
+      });
+
+      const container = document.getElementById('keyboardContainer');
+      container.innerHTML = `
+        <svg width="${svgWidth}" height="${wHeight + 4}" viewBox="0 0 ${svgWidth} ${wHeight + 4}">
+          ${whiteSvg}
+          ${blackSvg}
+        </svg>
+      `;
+
+      container.querySelectorAll('rect').forEach(rect => {
+        const handlePress = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const pitchClass = parseInt(rect.getAttribute('data-id'), 10);
+          handleNoteInput(pitchClass);
+        };
+        rect.addEventListener('pointerdown', handlePress);
+      });
+    }
+
+    function getActiveGuitarStrings() {
+      const strings = [];
+      for (let s = 1; s <= 6; s++) {
+        if (document.getElementById(`gt-str-${s}`).checked) {
+          strings.push(s);
+        }
+      }
+      return strings.length > 0 ? strings : [1, 2, 3, 4, 5, 6];
+    }
+
+    function getActiveGuitarFrets() {
+      const frets = [];
+      if (document.getElementById('gt-fret-open').checked) frets.push(0);
+      if (document.getElementById('gt-fret-1-3').checked) frets.push(1, 2, 3);
+      if (document.getElementById('gt-fret-4-6').checked) frets.push(4, 5, 6);
+      if (document.getElementById('gt-fret-7-9').checked) frets.push(7, 8, 9);
+      if (document.getElementById('gt-fret-10-12').checked) frets.push(10, 11, 12);
+
+      return frets.length > 0 ? frets : [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+    }
+
+    const isMobileUA = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+    function playSingleNoteQuestionAudio(freq) {
+      ensureAudioStarted();
+      targetFullNote = Tone.Frequency(freq).toNote();
+      const velocity = bassAwareVelocity(typeof freq === 'number' ? freq : Tone.Frequency(freq).toFrequency());
+      const startTime = Tone.now() + 0.03;
+      questionSynth.triggerAttackRelease(targetFullNote, "8n", startTime, velocity);
+    }
+
+    function highlightKey(pitchClass) {
+      const rect = document.querySelector(`.key-white[data-id="${pitchClass}"], .key-black[data-id="${pitchClass}"]`);
+      if (rect) {
+        rect.classList.add('active');
+        setTimeout(() => {
+          rect.classList.remove('active');
+        }, 200);
+      }
+    }
+
+    function nextQuestion() {
+      isAnswered = false;
+      document.querySelectorAll('.key-white.active, .key-black.active').forEach(el => el.classList.remove('active'));
+      document.getElementById('resultMessageArea').innerHTML = "";
+
+      const labelEl = document.getElementById('questionLabel');
+      const rootEl = document.getElementById('questionRoot');
+      const intervalEl = document.getElementById('questionInterval');
+
+      if (currentAppMode === 'circle') {
+        const activeRoots = getActiveRoots();
+        rootNote = activeRoots[Math.floor(Math.random() * activeRoots.length)];
+
+        const activeIntervals = getActiveIntervals();
+        currentInterval = activeIntervals[Math.floor(Math.random() * activeIntervals.length)];
+
+        const activeDirections = getActiveDirections();
+        currentDirection = activeDirections[Math.floor(Math.random() * activeDirections.length)];
+
+        let targetId = (rootNote.id + (currentInterval * currentDirection)) % 12;
+        if (targetId < 0) targetId += 12;
+        targetNote = NOTES.find(n => n.id === targetId);
+
+        const activeModes = getActiveModes();
+        const mode = activeModes[Math.floor(Math.random() * activeModes.length)];
+
+        const intervalText = INTERVAL_LABELS[currentInterval];
+        const dirSymbol = (currentDirection === 1) ? "↑" : "↓";
+
+        let renderFn;
+        if (mode === 'clock') {
+          labelEl.innerText = "ハイライト位置から指定度数離れた鍵盤を押してね";
+          rootEl.innerText = "基準：方位図ハイライト部";
+          intervalEl.innerText = `${dirSymbol} ${intervalText}`;
+          renderFn = () => renderSVG(rootNote.id, rootNote.id, null, true);
+        } else if (mode === 'time') {
+          labelEl.innerText = "この時計位置から指定度数離れた音は？";
+          rootEl.innerText = `基準：${rootNote.clock}時`;
+          intervalEl.innerText = `${dirSymbol} ${intervalText}`;
+          renderFn = () => renderSVG(rootNote.id, null, null, false);
+        } else if (mode === 'cde') {
+          labelEl.innerText = "この音名から指定度数離れた鍵盤を押してね";
+          const randomCde = rootNote.cdeNames[Math.floor(Math.random() * rootNote.cdeNames.length)];
+          rootEl.innerText = `基準：${randomCde}`;
+          intervalEl.innerText = `${dirSymbol} ${intervalText}`;
+          renderFn = () => renderSVG(rootNote.id, null, null, false);
+        } else if (mode === 'do') {
+          labelEl.innerText = "この階名から指定度数離れた鍵盤を押してね";
+          const randomDo = rootNote.doNames[Math.floor(Math.random() * rootNote.doNames.length)];
+          rootEl.innerText = `基準：${randomDo}`;
+          intervalEl.innerText = `${dirSymbol} ${intervalText}`;
+          renderFn = () => renderSVG(rootNote.id, null, null, false);
+        }
+
+        playCircleQuestionAudio(rootNote.freq, currentInterval, currentDirection);
+        if (renderFn) renderFn();
+
+      } else if (currentAppMode === 'guitar') {
+        const activeStrings = getActiveGuitarStrings();
+        const activeFrets = getActiveGuitarFrets();
+        const includeAccidental = document.getElementById('gt-include-accidental').checked;
+
+        let candidates = [];
+        activeStrings.forEach(sNum => {
+          const strConfig = GUITAR_STRINGS.find(s => s.stringNum === sNum);
+          activeFrets.forEach(fNum => {
+            const pitchClass = (strConfig.openPitch + fNum) % 12;
+            const noteObj = NOTES.find(n => n.id === pitchClass);
+            
+            if (includeAccidental || !noteObj.isAccidental) {
+              candidates.push({ string: sNum, fret: fNum, pitchClass: pitchClass, openFreq: strConfig.openFreq });
+            }
+          });
+        });
+
+        if (candidates.length === 0) {
+          candidates.push({ string: 6, fret: 0, pitchClass: 4, openFreq: "E2" });
+        }
+
+        const picked = candidates[Math.floor(Math.random() * candidates.length)];
+
+        guitarTarget = {
+          string: picked.string,
+          fret: picked.fret,
+          pitchClass: picked.pitchClass,
+          freq: Tone.Frequency(picked.openFreq).transpose(picked.fret).toFrequency()
+        };
+
+        targetNote = NOTES.find(n => n.id === picked.pitchClass);
+
+        labelEl.innerText = "🟠マークのポジションの音を鍵盤で弾こう！";
+        rootEl.innerText = "";
+        intervalEl.innerText = "";
+
+        playSingleNoteQuestionAudio(guitarTarget.freq);
+        renderGuitarFretboard(picked.string, picked.fret);
+
+      } else if (currentAppMode === 'staff') {
+        const clefTreble = document.getElementById('st-clef-treble').checked;
+        const clefBass = document.getElementById('st-clef-bass').checked;
+        const rangeStaff = document.getElementById('st-range-inside').checked;
+        const rangeLedger = document.getElementById('st-range-ledger').checked;
+
+        const accMode = document.querySelector('input[name="st-acc-mode"]:checked').value; 
+
+        let activeClefs = [];
+        if (clefTreble) activeClefs.push('treble');
+        if (clefBass) activeClefs.push('bass');
+        if (activeClefs.length === 0) activeClefs = ['treble'];
+
+        const pickedClef = activeClefs[Math.floor(Math.random() * activeClefs.length)];
+        const dict = (pickedClef === 'treble') ? STAFF_TREBLE_DICT : STAFF_BASS_DICT;
+
+        let candidates = dict.filter(item => {
+          const isInside = (item.index >= 0 && item.index <= 8);
+          const isLedger = (item.index < 0 || item.index > 8);
+
+          let allowRange = false;
+          if (rangeStaff && isInside) allowRange = true;
+          if (rangeLedger && isLedger) allowRange = true;
+          if (!rangeStaff && !rangeLedger) allowRange = isInside;
+
+          return allowRange;
+        });
+
+        if (accMode === 'none') {
+          candidates = candidates.filter(item => item.accidental === null);
+          if (candidates.length === 0) candidates = dict.filter(i => i.index >= 0 && i.index <= 8 && i.accidental === null);
+          
+          const pickedItem = candidates[Math.floor(Math.random() * candidates.length)];
+          targetNote = NOTES.find(n => n.id === pickedItem.pitchClass);
+
+          labelEl.innerText = "楽譜の音を鍵盤で弾こう！";
+          rootEl.innerText = "";
+          intervalEl.innerText = "";
+
+          playSingleNoteQuestionAudio(pickedItem.note);
+          renderStaffNotation(pickedClef, pickedItem, null);
+
+        } else if (accMode === 'accidental') {
+          if (candidates.length === 0) candidates = dict.filter(i => i.index >= 0 && i.index <= 8);
+          
+          const pickedItem = candidates[Math.floor(Math.random() * candidates.length)];
+          targetNote = NOTES.find(n => n.id === pickedItem.pitchClass);
+
+          labelEl.innerText = "楽譜の音を鍵盤で弾こう！";
+          rootEl.innerText = "";
+          intervalEl.innerText = "";
+
+          playSingleNoteQuestionAudio(pickedItem.note);
+          renderStaffNotation(pickedClef, pickedItem, null);
+
+        } else if (accMode === 'keysig') {
+          const selectedKeyKeys = [];
+          document.querySelectorAll('.key-item:checked').forEach(cb => {
+            const keyKey = cb.id.replace('key-', '');
+            if (KEY_DEFINITIONS[keyKey]) selectedKeyKeys.push(keyKey);
+          });
+
+          const activeKeyKey = selectedKeyKeys.length > 0 
+            ? selectedKeyKeys[Math.floor(Math.random() * selectedKeyKeys.length)]
+            : "C";
+          const keyConfig = KEY_DEFINITIONS[activeKeyKey];
+
+          const naturalCandidates = candidates.filter(item => item.accidental === null);
+          const pickedItem = naturalCandidates[Math.floor(Math.random() * naturalCandidates.length)];
+
+          let finalPitchClass = pickedItem.pitchClass;
+          if (keyConfig.sharps.includes(pickedItem.letter)) {
+            finalPitchClass = (pickedItem.pitchClass + 1) % 12;
+          } else if (keyConfig.flats.includes(pickedItem.letter)) {
+            finalPitchClass = (pickedItem.pitchClass + 11) % 12;
+          }
+
+          targetNote = NOTES.find(n => n.id === finalPitchClass);
+
+          labelEl.innerText = `調号を考慮して音を弾こう！ [${keyConfig.name}]`;
+          rootEl.innerText = "";
+          intervalEl.innerText = "";
+
+          const freq = Tone.Frequency(pickedItem.note).transpose(
+            keyConfig.sharps.includes(pickedItem.letter) ? 1 : (keyConfig.flats.includes(pickedItem.letter) ? -1 : 0)
+          ).toFrequency();
+
+          playSingleNoteQuestionAudio(freq);
+          renderStaffNotation(pickedClef, pickedItem, keyConfig);
+        }
+      }
+    }
+
+    function playCircleQuestionAudio(rootFreq, intervalSemi, direction) {
+      ensureAudioStarted();
+
+      const root = Tone.Frequency(rootFreq);
+      const target = root.transpose(intervalSemi * direction);
+      targetFullNote = target.toNote();
+
+      // 先読みバッファをわずかに持たせてスレッド遅延によるグリッチを防止
+      const startTime = Tone.now() + 0.03;
+      questionSynth.triggerAttackRelease(root.toNote(), "8n", startTime);
+      questionSynth.triggerAttackRelease(targetFullNote, "8n", startTime + 0.22);
+    }
+
+    function getActiveModes() {
+      const modes = [];
+      if (document.getElementById('mode-clock').checked) modes.push('clock');
+      if (document.getElementById('mode-time').checked) modes.push('time');
+      if (document.getElementById('mode-cde').checked) modes.push('cde');
+      if (document.getElementById('mode-do').checked) modes.push('do');
+      return modes.length > 0 ? modes : ['clock'];
+    }
+
+    function getActiveDirections() {
+      const dirs = [];
+      if (document.getElementById('dir-up').checked) dirs.push(1);
+      if (document.getElementById('dir-down').checked) dirs.push(-1);
+      return dirs.length > 0 ? dirs : [1];
+    }
+
+    function getActiveIntervals() {
+      const intervals = [];
+      for (let i = 0; i <= 12; i++) {
+        if (document.getElementById(`deg-${i}`).checked) intervals.push(i);
+      }
+      return intervals.length > 0 ? intervals : [0];
+    }
+
+    function getActiveRoots() {
+      const roots = [];
+      for (let i = 0; i < 12; i++) {
+        if (document.getElementById(`root-${i}`).checked) roots.push(NOTES[i]);
+      }
+      return roots.length > 0 ? roots : [NOTES[0]];
+    }
+
+    function playPressedNote(pitchClass) {
+      ensureAudioStarted();
+
+      if (targetFullNote) {
+        const targetOctave = targetFullNote.slice(-1);
+        const pressedNoteObj = NOTES.find(n => n.id === pitchClass);
+        
+        if (pressedNoteObj) {
+          const noteBase = pressedNoteObj.cdeNames[0];
+          const actualNoteToPlay = noteBase + targetOctave;
+          const velocity = bassAwareVelocity(Tone.Frequency(actualNoteToPlay).toFrequency());
+          const startTime = Tone.now() + 0.02;
+          answerSynth.triggerAttackRelease(actualNoteToPlay, "8n", startTime, velocity);
+        }
+      }
+    }
+
+    function handleNoteInput(pitchClass) {
+      if (isAnswered) {
+        nextQuestion();
+        return;
+      }
+
+      isAnswered = true;
+      highlightKey(pitchClass);
+      total++;
+
+      const isCorrect = (pitchClass === targetNote.id);
+      const pressedNote = NOTES.find(n => n.id === pitchClass);
+
+      playPressedNote(pitchClass);
+
+      const resultArea = document.getElementById('resultMessageArea');
+      const targetCde = targetNote.cdeNames.join("/");
+      const targetDo = targetNote.doNames.join("/");
+      const pressedCde = pressedNote.cdeNames.join("/");
+
+      const correctEmojis = ["🎉", "😄", "🙌", "✨", "😆", "👍", "🥳"];
+      const wrongEmojis = ["💧", "😅", "🤔", "😣", "🫠", "😖", "🙃"];
+      const pickEmoji = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+      if (isCorrect) {
+        score++;
+        const correctDetail = (currentAppMode === 'circle')
+          ? `${targetCde} (${targetDo}) ｜ ${targetNote.clock}時の位置`
+          : `${targetCde} (${targetDo})`;
+        resultArea.innerHTML = `
+          <div class="result-toast">
+            <div class="result-text correct">正解！ ${pickEmoji(correctEmojis)}</div>
+            <div class="result-subtext">${correctDetail}</div>
+          </div>
+        `;
+      } else {
+        resultArea.innerHTML = `
+          <div class="result-toast">
+            <div class="result-text wrong">残念... ${pickEmoji(wrongEmojis)}</div>
+            <div class="result-subtext">正解: ${targetCde} (${targetDo}) ｜ 入力: ${pressedCde}</div>
+          </div>
+        `;
+      }
+
+      if (currentAppMode === 'circle') {
+        renderSVG(rootNote.id, null, pitchClass);
+      }
+
+      if (window.twemoji && !isMobileUA) {
+        requestAnimationFrame(() => twemoji.parse(resultArea, { folder: "svg", ext: ".svg" }));
+      }
+    }
+
+    function updateMIDIInputs() {
+      const statusEl = document.getElementById('midiStatus');
+      if (!midiAccessGlobal) return;
+
+      const inputs = midiAccessGlobal.inputs.values();
+      let connected = false;
+
+      for (let input of inputs) {
+        input.onmidimessage = handleMIDIMessage;
+        connected = true;
+      }
+
+      if (connected) {
+        statusEl.innerText = "MIDIキーボード接続完了！";
+        statusEl.classList.add("connected");
+      } else {
+        statusEl.innerText = "MIDI機器未接続（画面鍵盤で遊べます）";
+        statusEl.classList.remove("connected");
+      }
+    }
+
+    function setupWebMIDI() {
+      const statusEl = document.getElementById('midiStatus');
+
+      if (navigator.requestMIDIAccess) {
+        navigator.requestMIDIAccess().then(
+          (midiAccess) => {
+            midiAccessGlobal = midiAccess;
+            updateMIDIInputs();
+            midiAccess.onstatechange = () => updateMIDIInputs();
+          },
+          () => {
+            statusEl.innerText = "MIDI未接続（画面鍵盤で遊べます）";
+          }
+        );
+      } else {
+        statusEl.innerText = "MIDI非対応ブラウザ（画面鍵盤で遊べます）";
+      }
+    }
+
+    function handleMIDIMessage(event) {
+      const [status, note, velocity] = event.data;
+      const command = status >> 4;
+
+      if (command === 9 && velocity > 0) {
+        const pitchClass = note % 12;
+        handleNoteInput(pitchClass);
+      }
+    }
+
+    const keyToPitch = {
+      'a': 0,  'w': 1,  's': 2,  'e': 3,  'd': 4,
+      'f': 5,  't': 6,  'g': 7,  'y': 8,  'h': 9,  'u': 10, 'j': 11
+    };
+
+    window.addEventListener('keydown', (e) => {
+      const key = e.key.toLowerCase();
+      if (keyToPitch.hasOwnProperty(key)) {
+        handleNoteInput(keyToPitch[key]);
+      } else if (e.key === 'Enter' || e.key === ' ') {
+        if (isAnswered) nextQuestion();
+      }
+    });
+
+    document.getElementById('quizContainer').addEventListener('click', (e) => {
+      if (e.target.closest('#keyboardContainer')) return;
+      if (isAnswered) nextQuestion();
+    });
+
+    document.querySelectorAll('.save-setting').forEach(cb => {
+      cb.addEventListener('change', () => {
+        saveSettings();
+        if (!isAnswered) nextQuestion();
+      });
+    });
+
+    document.querySelectorAll('.save-setting-radio').forEach(radio => {
+      radio.addEventListener('change', () => {
+        updateKeySigPanelState();
+        saveSettings();
+        if (!isAnswered) nextQuestion();
+      });
+    });
+
+    const timbreSelectQuestionEl = document.getElementById('timbre-select-question');
+    timbreSelectQuestionEl.value = currentTimbreQuestion;
+    timbreSelectQuestionEl.addEventListener('change', (e) => {
+      applyTimbre('question', e.target.value);
+    });
+
+    const timbreSelectAnswerEl = document.getElementById('timbre-select-answer');
+    timbreSelectAnswerEl.value = currentTimbreAnswer;
+    timbreSelectAnswerEl.addEventListener('change', (e) => {
+      applyTimbre('answer', e.target.value);
+    });
+
+    // 初期実行
+    loadSettings();
+    setupWebMIDI();
+    renderInteractiveKeyboard();
+    nextQuestion();
+
+    // PWA Service Worker 登録
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then((reg) => console.log('Service Worker registered:', reg.scope))
+          .catch((err) => console.warn('Service Worker registration failed:', err));
+      });
+    }
+  </script>
+</body>
+</html>

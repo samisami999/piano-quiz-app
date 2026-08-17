@@ -1,0 +1,24 @@
+{
+  "name": "鍵盤で答えて覚えるシリーズ",
+  "short_name": "音感鍵盤",
+  "description": "鍵盤で答えて覚える音名・度数・ギター指板・五線譜トレーニングアプリ",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f3e9db",
+  "theme_color": "#e07a4f",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}
