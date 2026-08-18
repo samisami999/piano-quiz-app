@@ -6,13 +6,13 @@
   <title>鍵盤で答えて覚えるシリーズ</title>
   
   <!-- PWA設定 -->
-  <link rel="manifest" href="manifest.json">
+  <link rel="manifest" href="manifest.json?v=2">
   <meta name="theme-color" content="#e07a4f">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="icon" type="image/svg+xml" href="icon.svg">
-  <link rel="apple-touch-icon" href="icon.svg">
+  <link rel="icon" type="image/svg+xml" href="icon.svg?v=2">
+  <link rel="apple-touch-icon" href="icon.svg?v=2">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -321,8 +321,14 @@
       transition: fill 0.08s ease;
     }
 
-    .key-white.active {
-      fill: #f8d9c8;
+    /* 正解時のハイライト色（青緑・ティール） */
+    .key-white.active-correct, .key-white.active {
+      fill: #aee3d8;
+    }
+
+    /* 不正解時のハイライト色（ソフトレッド） */
+    .key-white.active-wrong {
+      fill: #f8d7d5;
     }
 
     .key-black {
@@ -333,8 +339,14 @@
       transition: fill 0.08s ease;
     }
 
-    .key-black.active {
-      fill: var(--primary);
+    /* 正解時のハイライト色（青緑・ティール） */
+    .key-black.active-correct, .key-black.active {
+      fill: #3ba38d;
+    }
+
+    /* 不正解時のハイライト色（レッド） */
+    .key-black.active-wrong {
+      fill: #c95f5a;
     }
 
     .settings-container {
@@ -642,18 +654,18 @@
 
       <div class="settings-title">出題する基準音 (ROOTS)</div>
       <div class="settings-group">
-        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="root-0" checked> C (Do)</label>
-        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="root-1" checked> C#/Db (Di/Ra)</label>
-        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="root-2" checked> D (Re)</label>
-        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="root-3" checked> D#/Eb (Ri/Me)</label>
-        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="root-4" checked> E (Mi)</label>
-        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="root-5" checked> F (Fa)</label>
-        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="root-6" checked> F#/Gb (Fi/Se)</label>
-        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="root-7" checked> G (So)</label>
-        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="root-8" checked> G#/Ab (Si/Le)</label>
-        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="root-9" checked> A (La)</label>
-        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="root-10" checked> A#/Bb (Li/Te)</label>
-        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="root-11" checked> B (Ti)</label>
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="root-0" checked> C(Do)</label>
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="root-1" checked> C#(Di)/Db(Ra)</label>
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="root-2" checked> D(Re)</label>
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="root-3" checked> D#(Ri)/Eb(Me)</label>
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="root-4" checked> E(Mi)</label>
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="root-5" checked> F(Fa)</label>
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="root-6" checked> F#(Fi)/Gb(Se)</label>
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="root-7" checked> G(So)</label>
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="root-8" checked> G#(Si)/Ab(Le)</label>
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="root-9" checked> A(La)</label>
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="root-10" checked> A#(Li)/Bb(Te)</label>
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="root-11" checked> B(Ti)</label>
       </div>
     </div>
 
@@ -1386,19 +1398,27 @@
       questionSynth.triggerAttackRelease(targetFullNote, "8n", startTime, velocity);
     }
 
-    function highlightKey(pitchClass) {
+    function formatNoteNameWithSolfege(noteObj) {
+      if (!noteObj) return "";
+      return noteObj.cdeNames.map((cde, i) => `${cde}(${noteObj.doNames[i] || ""})`).join("/");
+    }
+
+    function highlightKey(pitchClass, isCorrect = true) {
       const rect = document.querySelector(`.key-white[data-id="${pitchClass}"], .key-black[data-id="${pitchClass}"]`);
       if (rect) {
-        rect.classList.add('active');
+        const cls = isCorrect ? 'active-correct' : 'active-wrong';
+        rect.classList.add(cls);
         setTimeout(() => {
-          rect.classList.remove('active');
-        }, 200);
+          rect.classList.remove(cls, 'active-correct', 'active-wrong', 'active');
+        }, 220);
       }
     }
 
     function nextQuestion() {
       isAnswered = false;
-      document.querySelectorAll('.key-white.active, .key-black.active').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.key-white, .key-black').forEach(el => {
+        el.classList.remove('active', 'active-correct', 'active-wrong');
+      });
       document.getElementById('resultMessageArea').innerHTML = "";
 
       const labelEl = document.getElementById('questionLabel');
@@ -1655,18 +1675,17 @@
       }
 
       isAnswered = true;
-      highlightKey(pitchClass);
-      total++;
-
       const isCorrect = (pitchClass === targetNote.id);
       const pressedNote = NOTES.find(n => n.id === pitchClass);
+
+      highlightKey(pitchClass, isCorrect);
+      total++;
 
       playPressedNote(pitchClass);
 
       const resultArea = document.getElementById('resultMessageArea');
-      const targetCde = targetNote.cdeNames.join("/");
-      const targetDo = targetNote.doNames.join("/");
-      const pressedCde = pressedNote.cdeNames.join("/");
+      const targetFormatted = formatNoteNameWithSolfege(targetNote);
+      const pressedFormatted = formatNoteNameWithSolfege(pressedNote);
 
       const correctEmojis = ["🎉", "😄", "🙌", "✨", "😆", "👍", "🥳"];
       const wrongEmojis = ["💧", "😅", "🤔", "😣", "🫠", "😖", "🙃"];
@@ -1675,8 +1694,8 @@
       if (isCorrect) {
         score++;
         const correctDetail = (currentAppMode === 'circle')
-          ? `${targetCde} (${targetDo}) ｜ ${targetNote.clock}時の位置`
-          : `${targetCde} (${targetDo})`;
+          ? `${targetFormatted} ｜ ${targetNote.clock}時の位置`
+          : `${targetFormatted}`;
         resultArea.innerHTML = `
           <div class="result-toast">
             <div class="result-text correct">正解！ ${pickEmoji(correctEmojis)}</div>
@@ -1687,7 +1706,7 @@
         resultArea.innerHTML = `
           <div class="result-toast">
             <div class="result-text wrong">残念... ${pickEmoji(wrongEmojis)}</div>
-            <div class="result-subtext">正解: ${targetCde} (${targetDo}) ｜ 入力: ${pressedCde}</div>
+            <div class="result-subtext">正解: ${targetFormatted} ｜ 入力: ${pressedFormatted}</div>
           </div>
         `;
       }
