@@ -145,12 +145,23 @@
 
     .midi-status {
       font-size: 0.78rem;
-      padding: 5px 14px;
+      padding: 6px 14px;
       border-radius: 20px;
       margin-bottom: 12px;
       font-weight: 700;
       background: var(--chip-bg);
       color: var(--muted-text);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      gap: 4px;
+    }
+
+    #midiStatusText {
+      display: inline-flex;
+      align-items: center;
+      line-height: 1;
     }
 
     .midi-status.connected {
@@ -163,49 +174,79 @@
       width: 100%;
       max-width: 460px;
       border-radius: 28px;
-      padding: 22px 20px;
+      padding: 14px 18px 10px 18px;
       box-shadow: 0 14px 34px var(--soft-shadow);
       text-align: center;
-      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      box-sizing: border-box;
     }
 
     .question-box {
-      min-height: 4.2rem;
+      height: 128px;
+      flex: 0 0 128px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
+      padding: 0;
+      overflow: hidden;
     }
 
-    .question-label {
-      font-size: 0.85rem;
-      font-weight: 500;
-      color: var(--muted-text);
-    }
-
-    .question-root {
+    .q-prefix {
       font-family: "Zen Maru Gothic", sans-serif;
       font-size: 1.2rem;
       font-weight: 700;
-      color: var(--correct);
-      margin-top: 2px;
+      color: var(--muted-text);
+      letter-spacing: 0.02em;
+      line-height: 1.3;
     }
 
     .question-interval {
-      font-family: "Zen Maru Gothic", sans-serif;
-      font-size: 1.5rem;
+      font-family: "Zen Maru Gothic", -apple-system, sans-serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin: 3px 0 3px 0;
+      line-height: 1.25;
+    }
+
+    .question-root {
+      font-family: "Zen Maru Gothic", -apple-system, sans-serif;
+      font-size: 2.2rem;
       font-weight: 900;
-      color: var(--primary-dark);
-      margin-top: 2px;
+      color: var(--teal);
+      height: 64px;
+      min-height: 64px;
+      max-height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .large-q-text {
+      font-size: 2.3rem;
+      font-weight: 900;
+      line-height: 1.1;
+      color: var(--teal);
     }
 
     .visual-container {
       width: 100%;
-      min-height: 140px;
-      margin: 6px auto;
-      display: flex;
+      height: 130px;
+      flex: 0 0 130px;
+      margin: 0 auto;
+      display: none;
       align-items: center;
       justify-content: center;
+      overflow: hidden;
+    }
+
+    .visual-container.visual-container-large {
+      height: 210px;
+      flex: 0 0 210px;
     }
 
     .visual-container .staff-svg {
@@ -215,17 +256,17 @@
     }
 
     .result-message-area {
-      height: 4.9rem;
-      min-height: 4.9rem;
-      max-height: 4.9rem;
+      height: 4.6rem;
+      min-height: 4.6rem;
+      max-height: 4.6rem;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 4px 0;
+      padding: 2px 0;
       pointer-events: none;
       overflow: hidden;
-      flex: 0 0 4.9rem;
+      flex: 0 0 4.6rem;
     }
 
     .keyboard-stage {
@@ -236,21 +277,33 @@
     }
 
     .result-toast {
-      height: 4.1rem;
+      height: auto;
       min-height: 4.1rem;
-      max-height: 4.1rem;
+      max-height: 100%;
       box-sizing: border-box;
-      background: rgba(250, 245, 236, 0.96);
-      border-radius: 20px;
-      padding: 9px 18px;
-      box-shadow: 0 8px 22px rgba(91, 68, 44, 0.15);
-      display: flex;
+      background: var(--card-bg);
+      border: 1.5px solid rgba(91, 68, 44, 0.12);
+      border-radius: 16px;
+      padding: 9px 22px;
+      box-shadow: none;
+      display: inline-flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       gap: 2px;
       animation: popIn 0.22s ease;
-      flex: 0 0 4.1rem;
+      flex: 0 0 auto;
+      max-width: 100%;
+    }
+
+    .result-toast.correct {
+      background: rgba(79, 140, 112, 0.09);
+      border-color: rgba(79, 140, 112, 0.3);
+    }
+
+    .result-toast.wrong {
+      background: rgba(201, 95, 90, 0.09);
+      border-color: rgba(201, 95, 90, 0.3);
     }
 
     .result-text {
@@ -282,7 +335,7 @@
     }
 
     .keyboard-container {
-      margin: 4px auto 2px auto;
+      margin: 10px auto 2px auto;
       display: flex;
       justify-content: center;
       width: 100%;
@@ -307,9 +360,10 @@
       }
 
       .result-message-area {
-        height: 4.9rem;
-        min-height: 4.9rem;
-        max-height: 4.9rem;
+        height: 5.1rem;
+        min-height: 5.1rem;
+        max-height: 5.1rem;
+        flex: 0 0 5.1rem;
       }
     }
 
@@ -562,6 +616,83 @@
       line-height: 1.4;
       text-align: center;
     }
+
+    /* ニューモーフィック × スキューモーフィックな MIDI ON/OFF トグルスイッチ */
+    .midi-toggle {
+      appearance: none;
+      -webkit-appearance: none;
+      border: none;
+      background: none;
+      padding: 0;
+      margin-left: 10px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      flex-shrink: 0;
+      outline: none;
+    }
+
+    .midi-toggle-label {
+      font-family: "Zen Kaku Gothic New", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: #9c9184;
+      transition: color 0.3s ease;
+    }
+
+    .midi-toggle.active .midi-toggle-label {
+      color: #7a4f18;
+    }
+
+    /* トラック：背景に沈み込んだ「溝」に見えるインセット影 */
+    .midi-toggle-track {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #efe4d3 0%, #f8f1e6 100%);
+      box-shadow:
+        inset 2px 2px 4px rgba(120, 90, 50, 0.28),
+        inset -1.5px -1.5px 3px rgba(255, 255, 255, 0.9);
+      transition: background 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .midi-toggle.active .midi-toggle-track {
+      background: linear-gradient(135deg, #f0a94e 0%, #e2851f 100%);
+      box-shadow:
+        inset 2px 2px 5px rgba(110, 55, 8, 0.45),
+        inset -1.5px -1.5px 3px rgba(255, 222, 165, 0.7);
+    }
+
+    /* つまみ：光沢のある立体的なビーズ状（スキューモーフィック） */
+    .midi-toggle-thumb {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 32% 28%, #ffffff 0%, #f3ecdd 55%, #ddd0b7 100%);
+      box-shadow:
+        1px 2px 3px rgba(90, 60, 20, 0.4),
+        -1px -1px 2px rgba(255, 255, 255, 0.9);
+      transition: transform 0.3s cubic-bezier(0.34, 1.4, 0.64, 1), background 0.3s ease;
+    }
+
+    .midi-toggle.active .midi-toggle-thumb {
+      transform: translateX(20px);
+      background: radial-gradient(circle at 32% 28%, #fff6e8 0%, #ffe2ae 55%, #f0b25f 100%);
+    }
+
+    .midi-toggle:active .midi-toggle-thumb {
+      transform: scale(0.9);
+    }
+
+    .midi-toggle.active:active .midi-toggle-thumb {
+      transform: translateX(20px) scale(0.9);
+    }
   </style>
 </head>
 <body>
@@ -574,13 +705,11 @@
     <button class="tab-btn" onclick="switchAppMode('staff')">五線譜</button>
   </div>
 
-  <div class="midi-status" id="midiStatus">MIDI機器を探しています...</div>
-
   <div class="quiz-container" id="quizContainer">
-    <div class="question-box">
-      <div class="question-label" id="questionLabel">出題</div>
-      <div class="question-root" id="questionRoot">--</div>
+    <div class="question-box" id="questionBox">
+      <div class="q-prefix" id="questionPrefix">What note is</div>
       <div class="question-interval" id="questionInterval">--</div>
+      <div class="question-root" id="questionRoot">--</div>
     </div>
 
     <div class="visual-container" id="visualContainer"></div>
@@ -595,6 +724,11 @@
 
   <!-- 設定エリア -->
   <div class="settings-container">
+
+    <div class="midi-status" id="midiStatus">
+      <span id="midiStatusText">MIDI機器を探しています...</span>
+      <button type="button" id="midiToggleBtn" class="midi-toggle active" title="MIDI入力 ON/OFF" role="switch" aria-checked="true"><span class="midi-toggle-label">MIDI</span><span class="midi-toggle-track"><span class="midi-toggle-thumb"></span></span></button>
+    </div>
 
     <!-- 音色設定（共通） -->
     <div class="settings-panel-static" id="panel-sound">
@@ -617,6 +751,13 @@
           </select>
         </label>
       </div>
+      <div class="settings-group" style="gap:10px; align-items:center; margin-top:10px;">
+        <label style="font-size:0.8rem; font-weight:500; color:var(--text-color); display:flex; align-items:center; gap:8px; width:100%;">
+          音量
+          <input type="range" id="volume-slider" min="0" max="100" value="80" style="flex:1; accent-color: var(--primary);">
+          <span id="volume-value" style="font-size:0.75rem; color:var(--muted-text); min-width:2.4em; text-align:right;">80%</span>
+        </label>
+      </div>
     </div>
 
     <!-- 音名と位置関係用設定 -->
@@ -627,6 +768,7 @@
         <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="mode-time" checked> ◯時の音</label>
         <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="mode-cde" checked> C/D/E</label>
         <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="mode-do" checked> Do/Re/Mi</label>
+        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="mode-color" checked> 色</label>
       </div>
 
       <div class="settings-title">出題する方向 (DIRECTIONS)</div>
@@ -763,18 +905,18 @@
 
   <script>
     const NOTES = [
-      { id: 0,  clock: 0,  freq: "C4",  isAccidental: false, doNames: ["Do"],             cdeNames: ["C"] },
-      { id: 1,  clock: 1,  freq: "C#4", isAccidental: true,  doNames: ["Di", "Ra"],       cdeNames: ["C#", "Db"] },
-      { id: 2,  clock: 2,  freq: "D4",  isAccidental: false, doNames: ["Re"],             cdeNames: ["D"] },
-      { id: 3,  clock: 3,  freq: "D#4", isAccidental: true,  doNames: ["Ri", "Me"],       cdeNames: ["D#", "Eb"] },
-      { id: 4,  clock: 4,  freq: "E4",  isAccidental: false, doNames: ["Mi"],             cdeNames: ["E"] },
-      { id: 5,  clock: 5,  freq: "F4",  isAccidental: false, doNames: ["Fa"],             cdeNames: ["F"] },
-      { id: 6,  clock: 6,  freq: "F#4", isAccidental: true,  doNames: ["Fi", "Se"],       cdeNames: ["F#", "Gb"] },
-      { id: 7,  clock: 7,  freq: "G4",  isAccidental: false, doNames: ["So"],             cdeNames: ["G"] },
-      { id: 8,  clock: 8,  freq: "G#4", isAccidental: true,  doNames: ["Si", "Le"],       cdeNames: ["G#", "Ab"] },
-      { id: 9,  clock: 9,  freq: "A4",  isAccidental: false, doNames: ["La"],             cdeNames: ["A"] },
-      { id: 10, clock: 10, freq: "A#4", isAccidental: true,  doNames: ["Li", "Te"],       cdeNames: ["A#", "Bb"] },
-      { id: 11, clock: 11, freq: "B4",  isAccidental: false, doNames: ["Ti"],             cdeNames: ["B"] }
+      { id: 0,  clock: 0,  freq: "C4",  isAccidental: false, doNames: ["Do"],             cdeNames: ["C"],       colorName: "Red",           colorHex: "#e63946" },
+      { id: 1,  clock: 1,  freq: "C#4", isAccidental: true,  doNames: ["Di", "Ra"],       cdeNames: ["C#", "Db"], colorName: "Red-Orange",    colorHex: "#f3722c" },
+      { id: 2,  clock: 2,  freq: "D4",  isAccidental: false, doNames: ["Re"],             cdeNames: ["D"],       colorName: "Orange",        colorHex: "#f8961e" },
+      { id: 3,  clock: 3,  freq: "D#4", isAccidental: true,  doNames: ["Ri", "Me"],       cdeNames: ["D#", "Eb"], colorName: "Yellow-Orange", colorHex: "#f9c74f" },
+      { id: 4,  clock: 4,  freq: "E4",  isAccidental: false, doNames: ["Mi"],             cdeNames: ["E"],       colorName: "Yellow",        colorHex: "#f3d012" },
+      { id: 5,  clock: 5,  freq: "F4",  isAccidental: false, doNames: ["Fa"],             cdeNames: ["F"],       colorName: "Yellow-Green",  colorHex: "#90be6d" },
+      { id: 6,  clock: 6,  freq: "F#4", isAccidental: true,  doNames: ["Fi", "Se"],       cdeNames: ["F#", "Gb"], colorName: "Green",         colorHex: "#43aa8b" },
+      { id: 7,  clock: 7,  freq: "G4",  isAccidental: false, doNames: ["So"],             cdeNames: ["G"],       colorName: "Blue-Green",    colorHex: "#2a9d8f" },
+      { id: 8,  clock: 8,  freq: "G#4", isAccidental: true,  doNames: ["Si", "Le"],       cdeNames: ["G#", "Ab"], colorName: "Blue",          colorHex: "#0077b6" },
+      { id: 9,  clock: 9,  freq: "A4",  isAccidental: false, doNames: ["La"],             cdeNames: ["A"],       colorName: "Blue-Purple",   colorHex: "#5964e0" },
+      { id: 10, clock: 10, freq: "A#4", isAccidental: true,  doNames: ["Li", "Te"],       cdeNames: ["A#", "Bb"], colorName: "Purple",        colorHex: "#9b5de5" },
+      { id: 11, clock: 11, freq: "B4",  isAccidental: false, doNames: ["Ti"],             cdeNames: ["B"],       colorName: "Red-Purple",    colorHex: "#f15bb5" }
     ];
 
     const GUITAR_STRINGS = [
@@ -917,11 +1059,28 @@
       "P1", "m2", "M2", "m3", "M3", "P4", "aug4/dim5", "P5", "m6", "M6", "m7", "M7", "P8"
     ];
 
+    const ENGLISH_INTERVAL_NAMES = [
+      "a perfect unison from",
+      "a minor second",
+      "a major second",
+      "a minor third",
+      "a major third",
+      "a perfect fourth",
+      "an augmented fourth",
+      "a perfect fifth",
+      "a minor sixth",
+      "a major sixth",
+      "a minor seventh",
+      "a major seventh",
+      "a perfect octave"
+    ];
+
     let currentAppMode = 'circle'; 
 
     let rootNote = null;
     let currentInterval = 0;
     let currentDirection = 1;
+    let currentCircleMode = 'clock';
 
     let guitarTarget = { string: 6, fret: 0, pitchClass: 4, freq: "E2" };
 
@@ -1057,6 +1216,28 @@
     applyTimbre('question', currentTimbreQuestion);
     applyTimbre('answer', currentTimbreAnswer);
 
+    // --- マスターボリューム（スライダー連動） ---
+    function setMasterVolumePercent(percent) {
+      const p = Math.max(0, Math.min(100, Number(percent)));
+      masterVol.volume.value = (p <= 0) ? -60 : Tone.gainToDb(p / 100);
+      const valueLabel = document.getElementById('volume-value');
+      if (valueLabel) valueLabel.innerText = `${Math.round(p)}%`;
+    }
+
+    const savedVolume = localStorage.getItem('master_volume_v1');
+    const initialVolume = (savedVolume !== null) ? Number(savedVolume) : 80;
+    const volumeSliderEl = document.getElementById('volume-slider');
+    if (volumeSliderEl) {
+      volumeSliderEl.value = initialVolume;
+      setMasterVolumePercent(initialVolume);
+      volumeSliderEl.addEventListener('input', (e) => {
+        setMasterVolumePercent(e.target.value);
+        localStorage.setItem('master_volume_v1', e.target.value);
+      });
+    } else {
+      setMasterVolumePercent(initialVolume);
+    }
+
     function ensureAudioStarted() {
       if (Tone.context.state !== 'running') {
         Tone.start();
@@ -1076,15 +1257,23 @@
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
       document.querySelectorAll('.settings-panel').forEach(panel => panel.classList.add('hidden'));
 
+      const visualContainerEl = document.getElementById('visualContainer');
+      const questionBoxEl = document.getElementById('questionBox');
       if (mode === 'circle') {
         document.querySelectorAll('.tab-btn')[0].classList.add('active');
         document.getElementById('panel-circle').classList.remove('hidden');
+        if (visualContainerEl) { visualContainerEl.style.display = 'none'; visualContainerEl.classList.remove('visual-container-large'); }
+        if (questionBoxEl) questionBoxEl.style.display = 'flex';
       } else if (mode === 'guitar') {
         document.querySelectorAll('.tab-btn')[1].classList.add('active');
         document.getElementById('panel-guitar').classList.remove('hidden');
+        if (visualContainerEl) { visualContainerEl.style.display = 'flex'; visualContainerEl.classList.add('visual-container-large'); }
+        if (questionBoxEl) questionBoxEl.style.display = 'none';
       } else if (mode === 'staff') {
         document.querySelectorAll('.tab-btn')[2].classList.add('active');
         document.getElementById('panel-staff').classList.remove('hidden');
+        if (visualContainerEl) { visualContainerEl.style.display = 'flex'; visualContainerEl.classList.add('visual-container-large'); }
+        if (questionBoxEl) questionBoxEl.style.display = 'none';
       }
 
       nextQuestion();
@@ -1140,47 +1329,51 @@
       if (!isAnswered && currentAppMode === 'staff') nextQuestion();
     }
 
-    function renderSVG(rootId, highlightId, pressedId = null, showHighlight = false, size = 130) {
+    function renderSVG(rootId, highlightId, pressedId = null, showHighlight = false, size = 72) {
       const center = size / 2;
-      const radius = size * 0.42;
-      let baseLines = '';
-      let highlightLines = '';
+      const radius = size * 0.40;
+      const strokeWidth = Math.max(3.5, size * 0.06);
+      const mainColor = "var(--teal)";
+      const notchLength = size * 0.09;
 
-      for (let i = 0; i < 12; i++) {
-        const angle = (i * 30 - 90) * (Math.PI / 180);
-        const x2 = center + radius * Math.cos(angle);
-        const y2 = center + radius * Math.sin(angle);
+      // 外円リング
+      let ringSvg = `<circle cx="${center}" cy="${center}" r="${radius}" fill="none" stroke="${mainColor}" stroke-width="${strokeWidth}"/>`;
 
-        if (!isAnswered) {
-          if (showHighlight && i === highlightId) {
-            highlightLines += `<line x1="${center}" y1="${center}" x2="${x2}" y2="${y2}" 
-                                     stroke="var(--highlight-line)" stroke-width="8" stroke-linecap="round"/>`;
-          } else {
-            baseLines += `<line x1="${center}" y1="${center}" x2="${x2}" y2="${y2}" 
-                                stroke="var(--line-base)" stroke-width="4" stroke-linecap="round"/>`;
-          }
-        } else {
-          if (i === targetNote.id) {
-            highlightLines += `<line x1="${center}" y1="${center}" x2="${x2}" y2="${y2}" 
-                                     stroke="var(--correct-line)" stroke-width="8" stroke-linecap="round"/>`;
-          } else if (pressedId !== null && pressedId !== targetNote.id && i === pressedId) {
-            highlightLines += `<line x1="${center}" y1="${center}" x2="${x2}" y2="${y2}" 
-                                     stroke="var(--wrong-line)" stroke-width="8" stroke-linecap="round"/>`;
-          } else {
-            baseLines += `<line x1="${center}" y1="${center}" x2="${x2}" y2="${y2}" 
-                                stroke="var(--line-base)" stroke-width="4" stroke-linecap="round"/>`;
-          }
-        }
+      // 12時, 3時, 6時, 9時の目盛りノッチ
+      let notchesSvg = '';
+      [0, 3, 6, 9].forEach(idx => {
+        const angle = (idx * 30 - 90) * (Math.PI / 180);
+        const x1 = center + radius * Math.cos(angle);
+        const y1 = center + radius * Math.sin(angle);
+        const x2 = center + (radius - notchLength) * Math.cos(angle);
+        const y2 = center + (radius - notchLength) * Math.sin(angle);
+        notchesSvg += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${mainColor}" stroke-width="${strokeWidth}" stroke-linecap="round"/>`;
+      });
+
+      // 針（ポインター）：円環リングにしっかり触れる長さ
+      const handRadius = radius;
+      const createHand = (noteId) => {
+        const angle = (noteId * 30 - 90) * (Math.PI / 180);
+        const targetX = center + handRadius * Math.cos(angle);
+        const targetY = center + handRadius * Math.sin(angle);
+        return `<line x1="${center}" y1="${center}" x2="${targetX}" y2="${targetY}" stroke="${mainColor}" stroke-width="${strokeWidth}" stroke-linecap="round"/>`;
+      };
+
+      let handsSvg = '';
+      const targetIdToPoint = (showHighlight && highlightId !== null && highlightId !== undefined) ? highlightId : rootId;
+      if (targetIdToPoint !== null && targetIdToPoint !== undefined) {
+        handsSvg = createHand(targetIdToPoint);
       }
 
-      const centerCircle = `<circle cx="${center}" cy="${center}" r="12" fill="var(--bg-color)" stroke="var(--line-base)" stroke-width="2.5"/>`;
+      // 中心のピボット円ドット
+      const hubSvg = `<circle cx="${center}" cy="${center}" r="${strokeWidth * 0.9}" fill="${mainColor}"/>`;
 
-      document.getElementById('visualContainer').innerHTML = 
-        `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-          ${baseLines}
-          ${highlightLines}
-          ${centerCircle}
-        </svg>`;
+      return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+        ${ringSvg}
+        ${notchesSvg}
+        ${handsSvg}
+        ${hubSvg}
+      </svg>`;
     }
 
     function renderGuitarFretboard(targetStr, targetFret) {
@@ -1403,14 +1596,20 @@
       return noteObj.cdeNames.map((cde, i) => `${cde}(${noteObj.doNames[i] || ""})`).join("/");
     }
 
-    function highlightKey(pitchClass, isCorrect = true) {
-      const rect = document.querySelector(`.key-white[data-id="${pitchClass}"], .key-black[data-id="${pitchClass}"]`);
-      if (rect) {
-        const cls = isCorrect ? 'active-correct' : 'active-wrong';
-        rect.classList.add(cls);
-        setTimeout(() => {
-          rect.classList.remove(cls, 'active-correct', 'active-wrong', 'active');
-        }, 220);
+    function showAnswerKeys(pressedPitchClass, targetPitchClass, isCorrect) {
+      document.querySelectorAll('.key-white, .key-black').forEach(el => {
+        el.classList.remove('active', 'active-correct', 'active-wrong');
+      });
+
+      if (isCorrect) {
+        const correctKey = document.querySelector(`.key-white[data-id="${targetPitchClass}"], .key-black[data-id="${targetPitchClass}"]`);
+        if (correctKey) correctKey.classList.add('active-correct');
+      } else {
+        const wrongKey = document.querySelector(`.key-white[data-id="${pressedPitchClass}"], .key-black[data-id="${pressedPitchClass}"]`);
+        if (wrongKey) wrongKey.classList.add('active-wrong');
+
+        const correctKey = document.querySelector(`.key-white[data-id="${targetPitchClass}"], .key-black[data-id="${targetPitchClass}"]`);
+        if (correctKey) correctKey.classList.add('active-correct');
       }
     }
 
@@ -1421,7 +1620,7 @@
       });
       document.getElementById('resultMessageArea').innerHTML = "";
 
-      const labelEl = document.getElementById('questionLabel');
+      const prefixEl = document.getElementById('questionPrefix');
       const rootEl = document.getElementById('questionRoot');
       const intervalEl = document.getElementById('questionInterval');
 
@@ -1441,37 +1640,34 @@
 
         const activeModes = getActiveModes();
         const mode = activeModes[Math.floor(Math.random() * activeModes.length)];
+        currentCircleMode = mode;
 
-        const intervalText = INTERVAL_LABELS[currentInterval];
-        const dirSymbol = (currentDirection === 1) ? "↑" : "↓";
+        const englishInterval = ENGLISH_INTERVAL_NAMES[currentInterval] || "a distance of";
+        const directionText = (currentDirection === 1) ? "above" : "below";
 
-        let renderFn;
+        if (prefixEl) prefixEl.innerText = "What note is";
+
+        if (currentInterval === 0) {
+          intervalEl.innerText = "a perfect unison from";
+        } else {
+          intervalEl.innerText = `${englishInterval} ${directionText}`;
+        }
+
         if (mode === 'clock') {
-          labelEl.innerText = "ハイライト位置から指定度数離れた鍵盤を押してね";
-          rootEl.innerText = "基準：方位図ハイライト部";
-          intervalEl.innerText = `${dirSymbol} ${intervalText}`;
-          renderFn = () => renderSVG(rootNote.id, rootNote.id, null, true);
+          rootEl.innerHTML = renderSVG(rootNote.id, rootNote.id, null, true, 60);
         } else if (mode === 'time') {
-          labelEl.innerText = "この時計位置から指定度数離れた音は？";
-          rootEl.innerText = `基準：${rootNote.clock}時`;
-          intervalEl.innerText = `${dirSymbol} ${intervalText}`;
-          renderFn = () => renderSVG(rootNote.id, null, null, false);
+          rootEl.innerHTML = `<span class="large-q-text">${rootNote.clock} o'clock</span>`;
         } else if (mode === 'cde') {
-          labelEl.innerText = "この音名から指定度数離れた鍵盤を押してね";
           const randomCde = rootNote.cdeNames[Math.floor(Math.random() * rootNote.cdeNames.length)];
-          rootEl.innerText = `基準：${randomCde}`;
-          intervalEl.innerText = `${dirSymbol} ${intervalText}`;
-          renderFn = () => renderSVG(rootNote.id, null, null, false);
+          rootEl.innerHTML = `<span class="large-q-text">${randomCde}</span>`;
         } else if (mode === 'do') {
-          labelEl.innerText = "この階名から指定度数離れた鍵盤を押してね";
           const randomDo = rootNote.doNames[Math.floor(Math.random() * rootNote.doNames.length)];
-          rootEl.innerText = `基準：${randomDo}`;
-          intervalEl.innerText = `${dirSymbol} ${intervalText}`;
-          renderFn = () => renderSVG(rootNote.id, null, null, false);
+          rootEl.innerHTML = `<span class="large-q-text">${randomDo}</span>`;
+        } else if (mode === 'color') {
+          rootEl.innerHTML = `<span class="large-q-text" style="display:inline-flex; align-items:center; gap:10px;"><span style="display:inline-block; width:44px; height:44px; background-color:${rootNote.colorHex}; border-radius:10px; border:2px solid rgba(255,255,255,0.9);"></span><span style="font-size:0.9rem; font-weight:700; color:${rootNote.colorHex};">${rootNote.colorName}</span></span>`;
         }
 
         playCircleQuestionAudio(rootNote.freq, currentInterval, currentDirection);
-        if (renderFn) renderFn();
 
       } else if (currentAppMode === 'guitar') {
         const activeStrings = getActiveGuitarStrings();
@@ -1506,9 +1702,9 @@
 
         targetNote = NOTES.find(n => n.id === picked.pitchClass);
 
-        labelEl.innerText = "🟠マークのポジションの音を鍵盤で弾こう！";
-        rootEl.innerText = "";
+        if (prefixEl) prefixEl.innerText = "";
         intervalEl.innerText = "";
+        rootEl.innerText = "";
 
         playSingleNoteQuestionAudio(guitarTarget.freq);
         renderGuitarFretboard(picked.string, picked.fret);
@@ -1548,9 +1744,9 @@
           const pickedItem = candidates[Math.floor(Math.random() * candidates.length)];
           targetNote = NOTES.find(n => n.id === pickedItem.pitchClass);
 
-          labelEl.innerText = "楽譜の音を鍵盤で弾こう！";
-          rootEl.innerText = "";
+          if (prefixEl) prefixEl.innerText = "";
           intervalEl.innerText = "";
+          rootEl.innerText = "";
 
           playSingleNoteQuestionAudio(pickedItem.note);
           renderStaffNotation(pickedClef, pickedItem, null);
@@ -1561,9 +1757,9 @@
           const pickedItem = candidates[Math.floor(Math.random() * candidates.length)];
           targetNote = NOTES.find(n => n.id === pickedItem.pitchClass);
 
-          labelEl.innerText = "楽譜の音を鍵盤で弾こう！";
-          rootEl.innerText = "";
+          if (prefixEl) prefixEl.innerText = "";
           intervalEl.innerText = "";
+          rootEl.innerText = "";
 
           playSingleNoteQuestionAudio(pickedItem.note);
           renderStaffNotation(pickedClef, pickedItem, null);
@@ -1592,9 +1788,9 @@
 
           targetNote = NOTES.find(n => n.id === finalPitchClass);
 
-          labelEl.innerText = `調号を考慮して音を弾こう！ [${keyConfig.name}]`;
-          rootEl.innerText = "";
+          if (prefixEl) prefixEl.innerText = "";
           intervalEl.innerText = "";
+          rootEl.innerText = "";
 
           const freq = Tone.Frequency(pickedItem.note).transpose(
             keyConfig.sharps.includes(pickedItem.letter) ? 1 : (keyConfig.flats.includes(pickedItem.letter) ? -1 : 0)
@@ -1625,6 +1821,7 @@
       if (document.getElementById('mode-time').checked) modes.push('time');
       if (document.getElementById('mode-cde').checked) modes.push('cde');
       if (document.getElementById('mode-do').checked) modes.push('do');
+      if (document.getElementById('mode-color') && document.getElementById('mode-color').checked) modes.push('color');
       return modes.length > 0 ? modes : ['clock'];
     }
 
@@ -1678,7 +1875,7 @@
       const isCorrect = (pitchClass === targetNote.id);
       const pressedNote = NOTES.find(n => n.id === pitchClass);
 
-      highlightKey(pitchClass, isCorrect);
+      showAnswerKeys(pitchClass, targetNote.id, isCorrect);
       total++;
 
       playPressedNote(pitchClass);
@@ -1697,22 +1894,18 @@
           ? `${targetFormatted} ｜ ${targetNote.clock}時の位置`
           : `${targetFormatted}`;
         resultArea.innerHTML = `
-          <div class="result-toast">
+          <div class="result-toast correct">
             <div class="result-text correct">正解！ ${pickEmoji(correctEmojis)}</div>
             <div class="result-subtext">${correctDetail}</div>
           </div>
         `;
       } else {
         resultArea.innerHTML = `
-          <div class="result-toast">
+          <div class="result-toast wrong">
             <div class="result-text wrong">残念... ${pickEmoji(wrongEmojis)}</div>
             <div class="result-subtext">正解: ${targetFormatted} ｜ 入力: ${pressedFormatted}</div>
           </div>
         `;
-      }
-
-      if (currentAppMode === 'circle') {
-        renderSVG(rootNote.id, null, pitchClass);
       }
 
       if (window.twemoji && !isMobileUA) {
@@ -1720,8 +1913,26 @@
       }
     }
 
+    let isMidiEnabled = true;
+    const midiToggleBtn = document.getElementById('midiToggleBtn');
+    if (midiToggleBtn) {
+      midiToggleBtn.addEventListener('click', () => {
+        isMidiEnabled = !isMidiEnabled;
+        if (isMidiEnabled) {
+          midiToggleBtn.classList.add('active');
+          midiToggleBtn.setAttribute('aria-checked', 'true');
+          midiToggleBtn.title = 'MIDI入力 ON';
+        } else {
+          midiToggleBtn.classList.remove('active');
+          midiToggleBtn.setAttribute('aria-checked', 'false');
+          midiToggleBtn.title = 'MIDI入力 OFF';
+        }
+      });
+    }
+
     function updateMIDIInputs() {
-      const statusEl = document.getElementById('midiStatus');
+      const statusTextEl = document.getElementById('midiStatusText');
+      const containerEl = document.getElementById('midiStatus');
       if (!midiAccessGlobal) return;
 
       const inputs = midiAccessGlobal.inputs.values();
@@ -1733,16 +1944,16 @@
       }
 
       if (connected) {
-        statusEl.innerText = "MIDIキーボード接続完了！";
-        statusEl.classList.add("connected");
+        if (statusTextEl) statusTextEl.innerText = "MIDIキーボード接続完了！";
+        if (containerEl) containerEl.classList.add("connected");
       } else {
-        statusEl.innerText = "MIDI機器未接続（画面鍵盤で遊べます）";
-        statusEl.classList.remove("connected");
+        if (statusTextEl) statusTextEl.innerText = "MIDI機器未接続（画面鍵盤で遊べます）";
+        if (containerEl) containerEl.classList.remove("connected");
       }
     }
 
     function setupWebMIDI() {
-      const statusEl = document.getElementById('midiStatus');
+      const statusTextEl = document.getElementById('midiStatusText');
 
       if (navigator.requestMIDIAccess) {
         navigator.requestMIDIAccess().then(
@@ -1752,15 +1963,18 @@
             midiAccess.onstatechange = () => updateMIDIInputs();
           },
           () => {
-            statusEl.innerText = "MIDI未接続（画面鍵盤で遊べます）";
+            if (statusTextEl) statusTextEl.innerText = "MIDI未接続（画面鍵盤で遊べます）";
           }
         );
       } else {
-        statusEl.innerText = "MIDI非対応ブラウザ（画面鍵盤で遊べます）";
+        if (statusTextEl) statusTextEl.innerText = "MIDI非対応ブラウザ（画面鍵盤で遊べます）";
       }
     }
 
     function handleMIDIMessage(event) {
+      // タブがバックグラウンドにある場合、または手動でMIDIがOFFの場合は入力を完全にスルー
+      if (document.hidden || !isMidiEnabled) return;
+
       const [status, note, velocity] = event.data;
       const command = status >> 4;
 
@@ -1776,6 +1990,7 @@
     };
 
     window.addEventListener('keydown', (e) => {
+      if (document.hidden) return;
       const key = e.key.toLowerCase();
       if (keyToPitch.hasOwnProperty(key)) {
         handleNoteInput(keyToPitch[key]);
