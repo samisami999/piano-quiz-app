@@ -59,6 +59,7 @@
       --target-dot: #e8a084;
       --grain-color-a: #5c3a1f;
       --grain-color-b: #2e1a0d;
+      --grid-marker: #d8c9a3;
     }
 
     img.emoji {
@@ -416,6 +417,83 @@
       font-size: 0.85rem;
       max-width: 460px;
       width: 100%;
+      transition: max-width 0.2s;
+    }
+
+    .settings-container.wide-panel {
+      max-width: 720px;
+    }
+
+    /* ギター：ノーマル / 3x4グリッド モード切替 */
+    .guitar-submode-switch {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      width: 100%;
+      margin-bottom: 2px;
+    }
+
+    .guitar-settings-columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      width: 100%;
+      align-items: start;
+    }
+
+    @media (max-width: 560px) {
+      .guitar-settings-columns {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .guitar-settings-col {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: var(--chip-bg);
+      border-radius: 18px;
+      padding: 12px;
+      transition: opacity 0.3s, background-color 0.3s;
+    }
+
+    .guitar-settings-col.disabled {
+      opacity: 0.45;
+      pointer-events: none;
+      background: #ece3d3;
+    }
+
+    .guitar-settings-col .settings-group {
+      justify-content: flex-start;
+    }
+
+    .checkbox-grid-compact {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 4px 6px;
+      width: 100%;
+      text-align: left;
+    }
+
+    .checkbox-grid-compact .custom-checkbox {
+      font-size: 0.78rem;
+    }
+
+    /* 3x4グリッドモード：指板上の複数音マーカー */
+    .grid-marker {
+      fill: var(--grid-marker);
+      stroke: var(--card-bg);
+      stroke-width: 1.5;
+    }
+
+    .grid-marker.grid-marker-target {
+      fill: var(--target-dot);
+      animation: gridMarkerPulse 0.9s ease-in-out infinite alternate;
+    }
+
+    @keyframes gridMarkerPulse {
+      0% { r: 6.5; filter: drop-shadow(0 0 1px var(--target-dot)); }
+      100% { r: 9; filter: drop-shadow(0 0 7px var(--target-dot)); }
     }
 
     .settings-panel,
@@ -813,28 +891,78 @@
 
     <!-- ギター指板用設定 -->
     <div class="settings-panel hidden" id="panel-guitar">
-      <div class="settings-title">音の種類 (ACCIDENTALS)</div>
-      <div class="settings-group">
-        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="gt-include-accidental" checked> ♯ / ♭ (変化音) を含める</label>
+      <div class="guitar-submode-switch">
+        <label class="custom-radio"><input type="radio" name="gt-submode" class="save-setting-radio" id="gt-submode-normal" value="gt-submode-normal" checked> ノーマルモード</label>
+        <label class="custom-radio"><input type="radio" name="gt-submode" class="save-setting-radio" id="gt-submode-grid" value="gt-submode-grid"> 音程記憶3x4グリッド</label>
       </div>
 
-      <div class="settings-title">出題する弦 (STRINGS)</div>
-      <div class="settings-group">
-        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="gt-str-6" checked> 6弦 (E)</label>
-        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="gt-str-5" checked> 5弦 (A)</label>
-        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="gt-str-4" checked> 4弦 (D)</label>
-        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="gt-str-3" checked> 3弦 (G)</label>
-        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="gt-str-2" checked> 2弦 (B)</label>
-        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="gt-str-1" checked> 1弦 (E)</label>
-      </div>
+      <div class="guitar-settings-columns">
+        <!-- ノーマルモード設定 -->
+        <div class="guitar-settings-col" id="guitar-normal-settings">
+          <div class="settings-title">音の種類 (ACCIDENTALS)</div>
+          <div class="settings-group">
+            <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="gt-include-accidental" checked> ♯ / ♭ (変化音) を含める</label>
+          </div>
 
-      <div class="settings-title">出題するフレット範囲 (FRETS)</div>
-      <div class="settings-group">
-        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="gt-fret-open" checked> 開放弦 (0f)</label>
-        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="gt-fret-1-3" checked> 1〜3f</label>
-        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="gt-fret-4-6" checked> 4〜6f</label>
-        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="gt-fret-7-9" checked> 7〜9f</label>
-        <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="gt-fret-10-12" checked> 10〜12f</label>
+          <div class="settings-title">出題する弦 (STRINGS)</div>
+          <div class="settings-group">
+            <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="gt-str-6" checked> 6弦 (E)</label>
+            <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="gt-str-5" checked> 5弦 (A)</label>
+            <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="gt-str-4" checked> 4弦 (D)</label>
+            <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="gt-str-3" checked> 3弦 (G)</label>
+            <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="gt-str-2" checked> 2弦 (B)</label>
+            <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="gt-str-1" checked> 1弦 (E)</label>
+          </div>
+
+          <div class="settings-title">出題するフレット範囲 (FRETS)</div>
+          <div class="settings-group">
+            <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="gt-fret-open" checked> 開放弦 (0f)</label>
+            <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="gt-fret-1-3" checked> 1〜3f</label>
+            <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="gt-fret-4-6" checked> 4〜6f</label>
+            <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="gt-fret-7-9" checked> 7〜9f</label>
+            <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="gt-fret-10-12" checked> 10〜12f</label>
+          </div>
+        </div>
+
+        <!-- 音程記憶用3x4グリッドモード設定 -->
+        <div class="guitar-settings-col disabled" id="guitar-grid-settings">
+          <div class="settings-title" style="display:flex; justify-content:space-between; align-items:center;">
+            <span>出題ルート音 (ROOTS)</span>
+          </div>
+          <div class="preset-btns">
+            <button type="button" onclick="setCheckboxGroup('g3-root', 12, true)">全選択</button>
+            <button type="button" onclick="setCheckboxGroup('g3-root', 12, false)">全解除</button>
+          </div>
+          <div class="checkbox-grid-compact">
+            <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="g3-root-0" checked> C</label>
+            <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="g3-root-1" checked> C#/Db</label>
+            <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="g3-root-2" checked> D</label>
+            <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="g3-root-3" checked> D#/Eb</label>
+            <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="g3-root-4" checked> E</label>
+            <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="g3-root-5" checked> F</label>
+            <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="g3-root-6" checked> F#/Gb</label>
+            <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="g3-root-7" checked> G</label>
+            <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="g3-root-8" checked> G#/Ab</label>
+            <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="g3-root-9" checked> A</label>
+            <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="g3-root-10" checked> A#/Bb</label>
+            <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="g3-root-11" checked> B</label>
+          </div>
+
+          <div class="settings-title">出題対象度数 (DEGREES)</div>
+          <div class="preset-btns">
+            <button type="button" onclick="setCheckboxGroup('g3-deg', 7, true)">全選択</button>
+            <button type="button" onclick="setCheckboxGroup('g3-deg', 7, false)">全解除</button>
+          </div>
+          <div class="checkbox-grid-compact">
+            <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="g3-deg-0" checked> P1</label>
+            <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="g3-deg-1" checked> M2</label>
+            <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="g3-deg-2" checked> M3</label>
+            <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="g3-deg-3" checked> P4</label>
+            <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="g3-deg-4" checked> P5</label>
+            <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="g3-deg-5" checked> M6</label>
+            <label class="custom-checkbox"><input type="checkbox" class="save-setting" id="g3-deg-6" checked> M7</label>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -927,6 +1055,66 @@
       { stringNum: 5, openPitch: 9, openFreq: "A2" },
       { stringNum: 6, openPitch: 4, openFreq: "E2" }
     ];
+
+    // --- 音程記憶用3x4グリッド：ルート基準位置＆相対パターン ---
+    // ルート音(pitchClass 0-11)ごとの基準ポジション（5弦=C〜E, 4弦=F〜B）
+    const GRID3X4_ROOT_POSITIONS = [
+      { string: 5, fret: 3 },  // 0  C
+      { string: 5, fret: 4 },  // 1  C#
+      { string: 5, fret: 5 },  // 2  D
+      { string: 5, fret: 6 },  // 3  D#
+      { string: 5, fret: 7 },  // 4  E
+      { string: 4, fret: 3 },  // 5  F
+      { string: 4, fret: 4 },  // 6  F#
+      { string: 4, fret: 5 },  // 7  G
+      { string: 4, fret: 6 },  // 8  G#
+      { string: 4, fret: 7 },  // 9  A
+      { string: 4, fret: 8 },  // 10 A#
+      { string: 4, fret: 9 }   // 11 B
+    ];
+
+    const GRID3X4_DEGREE_KEYS = ['P1', 'M2', 'M3', 'P4', 'P5', 'M6', 'M7'];
+
+    // ルートが5弦上にあるときのパターン（4/5/6弦を使用）
+    const GRID3X4_PATTERN_STR5 = [
+      { str: 5, fOff: 0,  degIdx: 0 }, // P1
+      { str: 4, fOff: -3, degIdx: 1 }, // M2
+      { str: 6, fOff: -3, degIdx: 2 }, // M3
+      { str: 4, fOff: 0,  degIdx: 3 }, // P4
+      { str: 6, fOff: 0,  degIdx: 4 }, // P5
+      { str: 5, fOff: -3, degIdx: 5 }, // M6
+      { str: 5, fOff: -1, degIdx: 6 }  // M7
+    ];
+
+    // ルートが4弦上にあるときのパターン（3/4/5弦を使用）
+    const GRID3X4_PATTERN_STR4 = [
+      { str: 4, fOff: 0,  degIdx: 0 }, // P1
+      { str: 3, fOff: -3, degIdx: 1 }, // M2
+      { str: 5, fOff: -3, degIdx: 2 }, // M3
+      { str: 3, fOff: 0,  degIdx: 3 }, // P4
+      { str: 5, fOff: 0,  degIdx: 4 }, // P5
+      { str: 4, fOff: -3, degIdx: 5 }, // M6
+      { str: 4, fOff: -1, degIdx: 6 }  // M7
+    ];
+
+    function computeGrid3x4(rootPitchId) {
+      const rootPos = GRID3X4_ROOT_POSITIONS[rootPitchId];
+      const pattern = (rootPos.string === 5) ? GRID3X4_PATTERN_STR5 : GRID3X4_PATTERN_STR4;
+
+      return pattern.map(item => {
+        const actualStr = item.str;
+        const actualFret = rootPos.fret + item.fOff;
+        const strConfig = GUITAR_STRINGS.find(s => s.stringNum === actualStr);
+        const pitchClass = (strConfig.openPitch + actualFret) % 12;
+        return {
+          string: actualStr,
+          fret: actualFret,
+          pitchClass: pitchClass,
+          degreeIndex: item.degIdx,
+          openFreq: strConfig.openFreq
+        };
+      });
+    }
 
     const KEY_DEFINITIONS = {
       "C":  { name: "C / Am",   type: "none",  count: 0, sharps: [], flats: [] },
@@ -1083,6 +1271,8 @@
     let currentCircleMode = 'clock';
 
     let guitarTarget = { string: 6, fret: 0, pitchClass: 4, freq: "E2" };
+    let currentGuitarSubMode = 'normal'; // 'normal' | 'grid'
+    let currentGridNotes = [];
 
     let targetNote = null;
     let targetFullNote = "";
@@ -1259,21 +1449,26 @@
 
       const visualContainerEl = document.getElementById('visualContainer');
       const questionBoxEl = document.getElementById('questionBox');
+      const settingsContainerEl = document.querySelector('.settings-container');
       if (mode === 'circle') {
         document.querySelectorAll('.tab-btn')[0].classList.add('active');
         document.getElementById('panel-circle').classList.remove('hidden');
         if (visualContainerEl) { visualContainerEl.style.display = 'none'; visualContainerEl.classList.remove('visual-container-large'); }
         if (questionBoxEl) questionBoxEl.style.display = 'flex';
+        if (settingsContainerEl) settingsContainerEl.classList.remove('wide-panel');
       } else if (mode === 'guitar') {
         document.querySelectorAll('.tab-btn')[1].classList.add('active');
         document.getElementById('panel-guitar').classList.remove('hidden');
         if (visualContainerEl) { visualContainerEl.style.display = 'flex'; visualContainerEl.classList.add('visual-container-large'); }
         if (questionBoxEl) questionBoxEl.style.display = 'none';
+        if (settingsContainerEl) settingsContainerEl.classList.add('wide-panel');
+        updateGuitarSubModeUI();
       } else if (mode === 'staff') {
         document.querySelectorAll('.tab-btn')[2].classList.add('active');
         document.getElementById('panel-staff').classList.remove('hidden');
         if (visualContainerEl) { visualContainerEl.style.display = 'flex'; visualContainerEl.classList.add('visual-container-large'); }
         if (questionBoxEl) questionBoxEl.style.display = 'none';
+        if (settingsContainerEl) settingsContainerEl.classList.remove('wide-panel');
       }
 
       nextQuestion();
@@ -1287,6 +1482,50 @@
       } else {
         keySigPanel.classList.add('disabled');
       }
+    }
+
+    function updateGuitarSubModeUI() {
+      const gridRadio = document.getElementById('gt-submode-grid');
+      const normalEl = document.getElementById('guitar-normal-settings');
+      const gridEl = document.getElementById('guitar-grid-settings');
+      if (!gridRadio || !normalEl || !gridEl) return;
+
+      currentGuitarSubMode = gridRadio.checked ? 'grid' : 'normal';
+
+      if (currentGuitarSubMode === 'grid') {
+        normalEl.classList.add('disabled');
+        gridEl.classList.remove('disabled');
+      } else {
+        normalEl.classList.remove('disabled');
+        gridEl.classList.add('disabled');
+      }
+    }
+
+    function setCheckboxGroup(idPrefix, count, checked) {
+      for (let i = 0; i < count; i++) {
+        const el = document.getElementById(`${idPrefix}-${i}`);
+        if (el) el.checked = checked;
+      }
+      saveSettings();
+      if (!isAnswered) nextQuestion();
+    }
+
+    function getActiveGridRoots() {
+      const roots = [];
+      for (let i = 0; i < 12; i++) {
+        const el = document.getElementById(`g3-root-${i}`);
+        if (el && el.checked) roots.push(i);
+      }
+      return roots;
+    }
+
+    function getActiveGridDegrees() {
+      const degrees = [];
+      for (let i = 0; i < 7; i++) {
+        const el = document.getElementById(`g3-deg-${i}`);
+        if (el && el.checked) degrees.push(i);
+      }
+      return degrees;
     }
 
     function saveSettings() {
@@ -1315,6 +1554,7 @@
         } catch(e) { console.error(e); }
       }
       updateKeySigPanelState();
+      updateGuitarSubModeUI();
     }
 
     function selectKeys(type) {
@@ -1376,7 +1616,7 @@
       </svg>`;
     }
 
-    function renderGuitarFretboard(targetStr, targetFret) {
+    function renderGuitarFretboard(targetStr, targetFret, gridNotes = null) {
       const width = 420;
       const height = 150;
 
@@ -1436,13 +1676,23 @@
         svg += `<text x="${x}" y="${height - 4}" font-size="10" fill="#8a7a5a" text-anchor="middle" font-family="sans-serif">${f}</text>`;
       }
 
-      const targetSIndex = targetStr - 1;
-      const targetY = stringYs[targetSIndex];
-      const targetX = cellCenter(targetFret);
-      if (targetFret === 0) {
-        svg += `<circle cx="${targetX}" cy="${targetY}" r="6.5" fill="none" stroke="var(--target-dot)" stroke-width="2.5"/>`;
-      } else {
-        svg += `<circle cx="${targetX}" cy="${targetY}" r="6.5" fill="var(--target-dot)"/>`;
+      if (Array.isArray(gridNotes)) {
+        // 音程記憶用3x4グリッドモード：7音すべてを描画し、ターゲットのみパルス強調
+        gridNotes.forEach(note => {
+          const y = stringYs[note.string - 1];
+          const x = cellCenter(note.fret);
+          const isTarget = (note.string === targetStr && note.fret === targetFret);
+          svg += `<circle cx="${x}" cy="${y}" r="6.5" class="grid-marker${isTarget ? ' grid-marker-target' : ''}"/>`;
+        });
+      } else if (targetStr !== null && targetFret !== null) {
+        const targetSIndex = targetStr - 1;
+        const targetY = stringYs[targetSIndex];
+        const targetX = cellCenter(targetFret);
+        if (targetFret === 0) {
+          svg += `<circle cx="${targetX}" cy="${targetY}" r="6.5" fill="none" stroke="var(--target-dot)" stroke-width="2.5"/>`;
+        } else {
+          svg += `<circle cx="${targetX}" cy="${targetY}" r="6.5" fill="var(--target-dot)"/>`;
+        }
       }
 
       document.getElementById('visualContainer').innerHTML =
@@ -1669,7 +1919,7 @@
 
         playCircleQuestionAudio(rootNote.freq, currentInterval, currentDirection);
 
-      } else if (currentAppMode === 'guitar') {
+      } else if (currentAppMode === 'guitar' && currentGuitarSubMode === 'normal') {
         const activeStrings = getActiveGuitarStrings();
         const activeFrets = getActiveGuitarFrets();
         const includeAccidental = document.getElementById('gt-include-accidental').checked;
@@ -1701,6 +1951,7 @@
         };
 
         targetNote = NOTES.find(n => n.id === picked.pitchClass);
+        currentGridNotes = [];
 
         if (prefixEl) prefixEl.innerText = "";
         intervalEl.innerText = "";
@@ -1708,6 +1959,50 @@
 
         playSingleNoteQuestionAudio(guitarTarget.freq);
         renderGuitarFretboard(picked.string, picked.fret);
+
+      } else if (currentAppMode === 'guitar' && currentGuitarSubMode === 'grid') {
+        const activeRoots = getActiveGridRoots();
+        const activeDegrees = getActiveGridDegrees();
+
+        if (prefixEl) prefixEl.innerText = "";
+        intervalEl.innerText = "";
+        rootEl.innerText = "";
+
+        if (activeRoots.length === 0) {
+          targetNote = null;
+          currentGridNotes = [];
+          document.getElementById('resultMessageArea').innerHTML =
+            `<div class="result-toast wrong"><div class="result-text wrong">ルート音を選択してください</div></div>`;
+          renderGuitarFretboard(null, null, []);
+          return;
+        }
+
+        if (activeDegrees.length === 0) {
+          targetNote = null;
+          currentGridNotes = [];
+          document.getElementById('resultMessageArea').innerHTML =
+            `<div class="result-toast wrong"><div class="result-text wrong">出題対象度数を選択してください</div></div>`;
+          renderGuitarFretboard(null, null, []);
+          return;
+        }
+
+        const pickedRootId = activeRoots[Math.floor(Math.random() * activeRoots.length)];
+        currentGridNotes = computeGrid3x4(pickedRootId);
+
+        const availableTargets = currentGridNotes.filter(n => activeDegrees.includes(n.degreeIndex));
+        const picked = availableTargets[Math.floor(Math.random() * availableTargets.length)];
+
+        guitarTarget = {
+          string: picked.string,
+          fret: picked.fret,
+          pitchClass: picked.pitchClass,
+          freq: Tone.Frequency(picked.openFreq).transpose(picked.fret).toFrequency()
+        };
+
+        targetNote = NOTES.find(n => n.id === picked.pitchClass);
+
+        playSingleNoteQuestionAudio(guitarTarget.freq);
+        renderGuitarFretboard(picked.string, picked.fret, currentGridNotes);
 
       } else if (currentAppMode === 'staff') {
         const clefTreble = document.getElementById('st-clef-treble').checked;
@@ -1871,6 +2166,8 @@
         return;
       }
 
+      if (!targetNote) return;
+
       isAnswered = true;
       const isCorrect = (pitchClass === targetNote.id);
       const pressedNote = NOTES.find(n => n.id === pitchClass);
@@ -2014,6 +2311,7 @@
     document.querySelectorAll('.save-setting-radio').forEach(radio => {
       radio.addEventListener('change', () => {
         updateKeySigPanelState();
+        updateGuitarSubModeUI();
         saveSettings();
         if (!isAnswered) nextQuestion();
       });
