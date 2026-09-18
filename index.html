@@ -404,6 +404,32 @@
       fill: #c95f5a;
     }
 
+    /* 回答後の音名ラベル・方位図形
+       参考画像に合わせて「文字 → 方位図形 → 鍵盤」の順に、
+       上部へ独立した情報レイヤーとして配置する。 */
+    .key-label {
+      font-family: 'Zen Maru Gothic', sans-serif;
+      font-weight: 700;
+      font-size: 9px;
+      letter-spacing: -0.25px;
+      fill: #6b5d45;
+      text-anchor: middle;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s ease;
+    }
+
+    .key-icon {
+      opacity: 0;
+      transition: opacity 0.15s ease;
+      pointer-events: none;
+    }
+
+    #keyboardContainer svg.labels-visible .key-label,
+    #keyboardContainer svg.labels-visible .key-icon {
+      opacity: 1;
+    }
+
     .settings-container {
       background: var(--card-bg);
       padding: 16px;
@@ -479,21 +505,23 @@
       font-size: 0.78rem;
     }
 
-    /* 3x4グリッドモード：指板上の複数音マーカー */
+    /* 3x4グリッドモード：指板上の複数音マーカー（ノーマルモードのターゲット丸と同じ大きさに統一） */
     .grid-marker {
       fill: var(--grid-marker);
       stroke: var(--card-bg);
-      stroke-width: 1.5;
+      stroke-width: 0.8;
+      opacity: 0.75;
     }
 
     .grid-marker.grid-marker-target {
       fill: var(--target-dot);
+      opacity: 1;
       animation: gridMarkerPulse 0.9s ease-in-out infinite alternate;
     }
 
     @keyframes gridMarkerPulse {
-      0% { r: 6.5; filter: drop-shadow(0 0 1px var(--target-dot)); }
-      100% { r: 9; filter: drop-shadow(0 0 7px var(--target-dot)); }
+      0% { filter: drop-shadow(0 0 1px var(--target-dot)); }
+      100% { filter: drop-shadow(0 0 4px var(--target-dot)); }
     }
 
     .settings-panel,
@@ -1671,6 +1699,15 @@
 
       svg += `<rect x="${left - nutWidth}" y="${boardTop - 2}" width="${nutWidth}" height="${boardBottom - boardTop + 4}" rx="2" fill="var(--nut-color)" stroke="#c9bfa4" stroke-width="0.5"/>`;
 
+      // フレット番号の上（指板寄り）に位置マーカーのドットを表示（3,5,7,9は1個、12は2個）
+      const fretMarkerY = boardBottom + 9;
+      const fretMarkerRadius = 2.2;
+      [3, 5, 7, 9].forEach(f => {
+        svg += `<circle cx="${cellCenter(f)}" cy="${fretMarkerY}" r="${fretMarkerRadius}" fill="#8a7a5a"/>`;
+      });
+      svg += `<circle cx="${cellCenter(12) - 5}" cy="${fretMarkerY}" r="${fretMarkerRadius}" fill="#8a7a5a"/>`;
+      svg += `<circle cx="${cellCenter(12) + 5}" cy="${fretMarkerY}" r="${fretMarkerRadius}" fill="#8a7a5a"/>`;
+
       for (let f = 0; f <= numFrets; f++) {
         const x = (f === 0) ? left : cellCenter(f);
         svg += `<text x="${x}" y="${height - 4}" font-size="10" fill="#8a7a5a" text-anchor="middle" font-family="sans-serif">${f}</text>`;
@@ -1764,12 +1801,68 @@
       voice.draw(context, stave);
     }
 
+    function darkenHex(hex, amount) {
+      const c = hex.replace('#', '');
+      const num = parseInt(c, 16);
+      const r = Math.max(0, (num >> 16) - amount);
+      const g = Math.max(0, ((num >> 8) & 0xff) - amount);
+      const b = Math.max(0, (num & 0xff) - amount);
+      return '#' + [r, g, b].map(v => v.toString(16).padStart(2, '0')).join('');
+    }
+
+    function blendHex(hex1, hex2, ratio) {
+      const a = hex1.replace('#', '');
+      const b = hex2.replace('#', '');
+      const ar = parseInt(a.slice(0, 2), 16), ag = parseInt(a.slice(2, 4), 16), ab = parseInt(a.slice(4, 6), 16);
+      const br = parseInt(b.slice(0, 2), 16), bg = parseInt(b.slice(2, 4), 16), bb = parseInt(b.slice(4, 6), 16);
+      const mix = (x, y) => Math.round(x * (1 - ratio) + y * ratio);
+      return '#' + [mix(ar, br), mix(ag, bg), mix(ab, bb)].map(v => v.toString(16).padStart(2, '0')).join('');
+    }
+
+    function renderClockBadge(noteId, size) {
+      const note = NOTES.find(n => n.id === noteId);
+      const center = size / 2;
+      const radius = size * 0.46;
+      const notchLength = size * 0.14;
+      const handRadius = radius * 0.6;
+      const beige = '#f3e9db';
+      const keyWhite = '#fdf9f0';
+      const fillColor = blendHex(note.colorHex, beige, 0.20);
+      const handColor = keyWhite;
+
+      // アプリ全体のベージュを少し混ぜた色面。
+      // 針・目盛りは白鍵と同じ色にそろえる。
+      let svg = `<circle cx="${center}" cy="${center}" r="${radius}" fill="${fillColor}" stroke="none"/>`;
+
+      [0, 3, 6, 9].forEach(idx => {
+        const angle = (idx * 30 - 90) * (Math.PI / 180);
+        const outer = radius * 0.8;
+        const x1 = center + outer * Math.cos(angle);
+        const y1 = center + outer * Math.sin(angle);
+        const x2 = center + (outer - notchLength) * Math.cos(angle);
+        const y2 = center + (outer - notchLength) * Math.sin(angle);
+        svg += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${handColor}" stroke-width="${Math.max(1.2, size * 0.05)}" stroke-linecap="round" opacity="0.9"/>`;
+      });
+
+      const angle = (noteId * 30 - 90) * (Math.PI / 180);
+      const hx = center + handRadius * Math.cos(angle);
+      const hy = center + handRadius * Math.sin(angle);
+      svg += `<line x1="${center}" y1="${center}" x2="${hx}" y2="${hy}" stroke="${handColor}" stroke-width="${Math.max(1.6, size * 0.1)}" stroke-linecap="round"/>`;
+      svg += `<circle cx="${center}" cy="${center}" r="${Math.max(1.2, size * 0.08)}" fill="${handColor}"/>`;
+
+      return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">${svg}</svg>`;
+    }
+
     function renderInteractiveKeyboard() {
       const wWidth = 46;
       const wHeight = 126;
-      const bWidth = 28;
+      const bWidth = 32;
       const bHeight = 78;
       const svgWidth = wWidth * 7;
+      const iconSize = 20;
+      const labelRowHeight = 24;
+      const iconRowHeight = iconSize + 6;
+      const labelAreaHeight = labelRowHeight + iconRowHeight;
 
       const whiteKeys = [
         { id: 0, x: 0 }, { id: 2, x: wWidth }, { id: 4, x: wWidth * 2 },
@@ -1783,19 +1876,39 @@
 
       let whiteSvg = '';
       whiteKeys.forEach(k => {
-        whiteSvg += `<rect class="key-white" data-id="${k.id}" x="${k.x}" y="0" width="${wWidth}" height="${wHeight}" rx="4"/>`;
+        whiteSvg += `<rect class="key-white" data-id="${k.id}" x="${k.x}" y="${labelAreaHeight}" width="${wWidth}" height="${wHeight}" rx="4"/>`;
       });
 
       let blackSvg = '';
       blackKeys.forEach(k => {
-        blackSvg += `<rect class="key-black" data-id="${k.id}" x="${k.x}" y="0" width="${bWidth}" height="${bHeight}" rx="3"/>`;
+        blackSvg += `<rect class="key-black" data-id="${k.id}" x="${k.x}" y="${labelAreaHeight}" width="${bWidth}" height="${bHeight}" rx="3"/>`;
+      });
+
+      // 白鍵・黒鍵とも同じ x 座標に「音名 → 方位図形」を縦積みで配置。
+      // 鍵盤そのものとは別レイヤーにして、参考画像の上部情報帯を再現する。
+      const allKeyCenters = [
+        ...whiteKeys.map(k => ({ id: k.id, x: k.x + wWidth / 2 })),
+        ...blackKeys.map(k => ({ id: k.id, x: k.x + bWidth / 2 }))
+      ];
+
+      let labelSvg = '';
+      allKeyCenters.forEach(k => {
+        const label = NOTES.find(n => n.id === k.id).doNames.join('');
+        labelSvg += `<text class="key-label" data-label-id="${k.id}" x="${k.x}" y="${labelRowHeight}">${label}</text>`;
+      });
+
+      let iconSvg = '';
+      allKeyCenters.forEach(k => {
+        iconSvg += `<g class="key-icon" data-icon-id="${k.id}" transform="translate(${k.x - iconSize / 2}, ${labelRowHeight + 4})">${renderClockBadge(k.id, iconSize)}</g>`;
       });
 
       const container = document.getElementById('keyboardContainer');
       container.innerHTML = `
-        <svg width="${svgWidth}" height="${wHeight + 4}" viewBox="0 0 ${svgWidth} ${wHeight + 4}">
+        <svg width="${svgWidth}" height="${wHeight + labelAreaHeight + 4}" viewBox="0 0 ${svgWidth} ${wHeight + labelAreaHeight + 4}">
           ${whiteSvg}
           ${blackSvg}
+          ${labelSvg}
+          ${iconSvg}
         </svg>
       `;
 
@@ -1851,6 +1964,9 @@
         el.classList.remove('active', 'active-correct', 'active-wrong');
       });
 
+      const svgEl = document.querySelector('#keyboardContainer svg');
+      if (svgEl) svgEl.classList.add('labels-visible');
+
       if (isCorrect) {
         const correctKey = document.querySelector(`.key-white[data-id="${targetPitchClass}"], .key-black[data-id="${targetPitchClass}"]`);
         if (correctKey) correctKey.classList.add('active-correct');
@@ -1868,6 +1984,8 @@
       document.querySelectorAll('.key-white, .key-black').forEach(el => {
         el.classList.remove('active', 'active-correct', 'active-wrong');
       });
+      const svgEl = document.querySelector('#keyboardContainer svg');
+      if (svgEl) svgEl.classList.remove('labels-visible');
       document.getElementById('resultMessageArea').innerHTML = "";
 
       const prefixEl = document.getElementById('questionPrefix');
@@ -2178,8 +2296,6 @@
       playPressedNote(pitchClass);
 
       const resultArea = document.getElementById('resultMessageArea');
-      const targetFormatted = formatNoteNameWithSolfege(targetNote);
-      const pressedFormatted = formatNoteNameWithSolfege(pressedNote);
 
       const correctEmojis = ["🎉", "😄", "🙌", "✨", "😆", "👍", "🥳"];
       const wrongEmojis = ["💧", "😅", "🤔", "😣", "🫠", "😖", "🙃"];
@@ -2187,20 +2303,15 @@
 
       if (isCorrect) {
         score++;
-        const correctDetail = (currentAppMode === 'circle')
-          ? `${targetFormatted} ｜ ${targetNote.clock}時の位置`
-          : `${targetFormatted}`;
         resultArea.innerHTML = `
           <div class="result-toast correct">
             <div class="result-text correct">正解！ ${pickEmoji(correctEmojis)}</div>
-            <div class="result-subtext">${correctDetail}</div>
           </div>
         `;
       } else {
         resultArea.innerHTML = `
           <div class="result-toast wrong">
             <div class="result-text wrong">残念... ${pickEmoji(wrongEmojis)}</div>
-            <div class="result-subtext">正解: ${targetFormatted} ｜ 入力: ${pressedFormatted}</div>
           </div>
         `;
       }
