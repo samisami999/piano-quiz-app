@@ -3,16 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>鍵盤で答えて覚えるシリーズ</title>
+  <title>【鍵盤で答えて記憶】</title>
   
   <!-- PWA設定 -->
   <link rel="manifest" href="manifest.json?v=2">
-  <meta name="theme-color" content="#e07a4f">
+  <meta name="theme-color" content="#f1e5d3">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="icon" type="image/svg+xml" href="icon.svg?v=2">
-  <link rel="apple-touch-icon" href="icon.svg?v=2">
+  <link rel="icon" type="image/svg+xml" href="favicon_index.svg?v=3">
+  <link rel="icon" type="image/png" sizes="192x192" href="favicon_index.png?v=3">
+  <link rel="apple-touch-icon" href="favicon_index.png?v=3">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -144,6 +145,24 @@
       cursor: not-allowed;
     }
 
+        .midi-connect-btn {
+      margin-left: 6px;
+      padding: 3px 10px;
+      font-size: 0.72rem;
+      border-radius: 12px;
+      border: 1.5px solid currentColor;
+      background: transparent;
+      color: inherit;
+      cursor: pointer;
+      font-weight: 700;
+      transition: all 0.2s ease;
+    }
+    .midi-connect-btn:hover {
+      background: rgba(0, 0, 0, 0.06);
+    }
+    .midi-connect-btn:active {
+      transform: translateY(1px);
+    }
     .midi-status {
       font-size: 0.78rem;
       padding: 6px 14px;
@@ -332,7 +351,7 @@
       font-family: "Bravura";
       font-style: normal;
       font-weight: normal;
-      fill: #5c5548;
+      fill: #4d3f33;
     }
 
     .keyboard-container {
@@ -425,7 +444,10 @@
       pointer-events: none;
     }
 
+    .key-art, .key-label-bg { opacity: 0; transition: opacity 0.2s ease; pointer-events: none; }
     #keyboardContainer svg.labels-visible .key-label,
+    #keyboardContainer svg.labels-visible .key-label-bg,
+    #keyboardContainer svg.labels-visible .key-art,
     #keyboardContainer svg.labels-visible .key-icon {
       opacity: 1;
     }
@@ -722,88 +744,192 @@
       line-height: 1.4;
       text-align: center;
     }
-
-    /* ニューモーフィック × スキューモーフィックな MIDI ON/OFF トグルスイッチ */
-    .midi-toggle {
-      appearance: none;
-      -webkit-appearance: none;
-      border: none;
-      background: none;
+  </style>
+  <style id="design-v4">
+    :root {
+      --surface: #f1e5d3; --sh-dark: rgba(166,124,82,0.36); --sh-light: rgba(255,251,241,0.95);
+      --raise: 6px 6px 14px var(--sh-dark), -6px -6px 14px var(--sh-light);
+      --raise-s: 3px 3px 7px var(--sh-dark), -3px -3px 7px var(--sh-light);
+      --inset: inset 3px 3px 7px var(--sh-dark), inset -3px -3px 7px var(--sh-light);
+      --bg-color: var(--surface); --card-bg: var(--surface);
+      --text-color: #3a2f26; --muted-text: #8c7863;
+      --primary: #3a2f26; --primary-dark: #3a2f26; --teal: #3a2f26;
+      --correct: #3a2f26; --wrong: #8c7863; --soft-shadow: var(--sh-dark);
+      --chip-bg: var(--surface); --chip-bg-active: #e9d9c3;
+      --fretboard-wood-top: #5e4130; --fretboard-wood-bottom: #4b3225;
+      --grain-color-a: #6b4a35; --grain-color-b: #35200f; --inlay-color: #d2bd9a;
+      --nut-color: #f1e5d1; --target-dot: #fff8ea; --grid-marker: #cdb48f;
+    }
+    body { background-color: var(--surface); background-image: radial-gradient(ellipse at 15% -5%, rgba(255,248,232,0.85), transparent 60%), radial-gradient(ellipse at 100% 105%, rgba(247,201,160,0.30), transparent 55%); background-attachment: fixed; }
+    .quiz-container { border-radius: 32px; box-shadow: var(--raise); }
+    .settings-container { border-radius: 32px; box-shadow: var(--raise); }
+    .app-mode-tabs, .midi-status { background: var(--surface); box-shadow: var(--inset); }
+    .tab-btn.active { background: var(--surface); box-shadow: var(--raise-s); color: var(--text-color); }
+    .midi-status.connected { background: var(--surface); color: var(--text-color); }
+    .midi-connect-btn { border: none; background: var(--surface); box-shadow: var(--raise-s); }
+    .midi-connect-btn:active { box-shadow: var(--inset); transform: none; }
+    .q-prefix { color: var(--muted-text); }
+    .question-interval { color: var(--text-color); }
+    .question-root svg { filter: none; }
+    .key-icon { filter: none; }
+    .visual-container .vf-stave path { stroke: #5a493a; stroke-width: 1.4px; }
+    .visual-container .vf-stave rect { fill: #5a493a; }
+    .result-toast { background: var(--surface); border: none; box-shadow: var(--raise-s); }
+    .result-toast.correct { background: var(--surface); }
+    .result-toast.wrong { background: var(--surface); box-shadow: var(--inset); }
+    .result-text.correct { color: var(--text-color); }
+    .result-text.wrong { color: var(--muted-text); }
+    .key-white { fill: #fcf7ee; stroke: none; filter: url(#keyRaise); }
+    .key-white.active-correct, .key-white.active { fill: var(--k, #d8c8b0); filter: url(#keyInset); }
+    .key-white.active-wrong { fill: #cdbda8; filter: url(#keyInset); }
+    .key-black { fill: #4d3f33; stroke: none; filter: url(#keyRaise); }
+    .key-black.active-correct, .key-black.active { fill: var(--k, #9a8a78); filter: url(#keyInset); }
+    .key-black.active-wrong { fill: #9a8a78; filter: url(#keyInset); }
+    .guitar-settings-col, .key-sig-panel { background: var(--surface); box-shadow: var(--inset); }
+    .guitar-settings-col.disabled, .key-sig-panel.disabled { background: var(--surface); }
+    .sound-select { background-color: var(--surface); box-shadow: var(--inset); font-weight: 700;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%236b5744'><path d='M5.5 7.5l4.5 4.5 4.5-4.5z'/></svg>"); }
+    .sound-select:hover, .sound-select:focus { background-color: var(--chip-bg-active); }
+    .custom-checkbox, .custom-radio { background: var(--surface); border: none; box-shadow: var(--raise-s); }
+    .custom-checkbox:has(input:checked), .custom-radio:has(input:checked) {
+      background: var(--surface); border: none; color: var(--text-color); font-weight: 700; box-shadow: var(--inset); }
+    .custom-checkbox input[type="checkbox"], .custom-radio input[type="radio"] { border-color: #c9b59b; background-color: transparent; }
+    .custom-checkbox:has(input:checked) input[type="checkbox"], .custom-radio:has(input:checked) input[type="radio"] {
+      border-color: var(--text-color); background-color: transparent; }
+    .custom-checkbox:has(input:checked) input[type="checkbox"]::before { box-shadow: inset 1em 1em var(--text-color); }
+    .custom-radio:has(input:checked) input[type="radio"]::before { background-color: var(--text-color); }
+    .preset-btns button { background: var(--surface); box-shadow: var(--raise-s); }
+    .preset-btns button:hover { background: var(--chip-bg-active); color: var(--text-color); }
+    .preset-btns button:active { box-shadow: var(--inset); }
+    .grid-marker { stroke: var(--surface); }
+    .question-box { height: 156px; flex: 0 0 156px; overflow: visible; }
+    .question-root { height: 88px; min-height: 88px; max-height: 88px; overflow: visible; }
+    /* ---- v8: 余白を広げ、影とハイライトが切れないようにする / PCでは全体を拡大 ---- */
+    body { padding: 28px 20px 40px; }
+    .series-title { margin-bottom: 14px; }
+    .app-mode-tabs { gap: 10px; padding: 8px; margin-bottom: 22px; }
+    .tab-btn { padding: 10px 20px; }
+    .midi-status { margin-bottom: 20px; padding: 8px 18px; gap: 8px; }
+    .quiz-container { max-width: 500px; padding: 28px 32px 26px; gap: 18px; }
+    /* 回答メッセージは鍵盤の下に、会話の吹き出しとして必要な時だけ表示する。 */
+    .result-message-area {
+      width: 100%;
+      display: flex;
+      justify-content: flex-start;
+      height: auto;
+      min-height: 0;
+      max-height: none;
+      flex: 0 0 auto;
       padding: 0;
-      margin-left: 10px;
-      cursor: pointer;
-      display: inline-flex;
+      overflow: visible;
+    }
+    .result-message-area:empty { display: none; }
+    .result-toast {
+      display: flex;
+      flex-direction: row;
+      align-items: flex-end;
+      gap: 9px;
+      width: 100%;
+      min-height: 0;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+      text-align: left;
+    }
+    .result-toast.correct, .result-toast.wrong { background: transparent; box-shadow: none; }
+    .result-speaker {
+      flex: 0 0 48px;
+      display: flex;
+      flex-direction: column;
       align-items: center;
-      gap: 7px;
-      flex-shrink: 0;
-      outline: none;
+      gap: 4px;
     }
-
-    .midi-toggle-label {
-      font-family: "Zen Kaku Gothic New", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      font-size: 0.68rem;
+    .result-speaker-label {
+      min-width: 31px;
+      padding: 2px 5px;
+      border-radius: 5px;
+      background: var(--speaker-color, #6b5d45);
+      color: #ffffff;
+      font-family: 'Zen Maru Gothic', sans-serif;
+      font-size: 0.7rem;
       font-weight: 700;
-      letter-spacing: 0.04em;
-      color: #9c9184;
-      transition: color 0.3s ease;
+      line-height: 1.1;
+      letter-spacing: -0.04em;
+      text-align: center;
+      white-space: nowrap;
+      text-shadow: 0 1px 0 rgba(59, 46, 40, 0.35);
+      box-shadow: 0 3px 8px rgba(80, 62, 44, 0.12);
     }
-
-    .midi-toggle.active .midi-toggle-label {
-      color: #7a4f18;
-    }
-
-    /* トラック：背景に沈み込んだ「溝」に見えるインセット影 */
-    .midi-toggle-track {
-      position: relative;
-      width: 44px;
-      height: 24px;
-      border-radius: 999px;
-      background: linear-gradient(135deg, #efe4d3 0%, #f8f1e6 100%);
-      box-shadow:
-        inset 2px 2px 4px rgba(120, 90, 50, 0.28),
-        inset -1.5px -1.5px 3px rgba(255, 255, 255, 0.9);
-      transition: background 0.3s ease, box-shadow 0.3s ease;
-    }
-
-    .midi-toggle.active .midi-toggle-track {
-      background: linear-gradient(135deg, #f0a94e 0%, #e2851f 100%);
-      box-shadow:
-        inset 2px 2px 5px rgba(110, 55, 8, 0.45),
-        inset -1.5px -1.5px 3px rgba(255, 222, 165, 0.7);
-    }
-
-    /* つまみ：光沢のある立体的なビーズ状（スキューモーフィック） */
-    .midi-toggle-thumb {
-      position: absolute;
-      top: 2px;
-      left: 2px;
-      width: 20px;
-      height: 20px;
+    .result-art {
+      flex: 0 0 48px;
+      width: 48px;
+      height: 48px;
       border-radius: 50%;
-      background: radial-gradient(circle at 32% 28%, #ffffff 0%, #f3ecdd 55%, #ddd0b7 100%);
-      box-shadow:
-        1px 2px 3px rgba(90, 60, 20, 0.4),
-        -1px -1px 2px rgba(255, 255, 255, 0.9);
-      transition: transform 0.3s cubic-bezier(0.34, 1.4, 0.64, 1), background 0.3s ease;
+      border: 1px solid rgba(255, 255, 255, 0.68);
+      background: linear-gradient(145deg, rgba(252, 247, 238, 0.96), rgba(252, 247, 238, 0.78));
+      box-shadow: var(--raise-s);
+      display: grid;
+      place-items: center;
+      line-height: 0;
     }
-
-    .midi-toggle.active .midi-toggle-thumb {
-      transform: translateX(20px);
-      background: radial-gradient(circle at 32% 28%, #fff6e8 0%, #ffe2ae 55%, #f0b25f 100%);
+    .result-art svg { display: block; }
+    .result-bubble {
+      position: relative;
+      max-width: calc(100% - 57px);
+      padding: 12px 15px;
+      border-radius: 18px 18px 18px 5px;
+      border: 1px solid rgba(255, 255, 255, 0.68);
+      background: linear-gradient(145deg, rgba(252, 247, 238, 0.96), rgba(252, 247, 238, 0.78));
+      box-shadow: var(--raise-s);
+      color: var(--text-color);
+      font-size: 0.92rem;
+      font-weight: 700;
+      line-height: 1.55;
     }
-
-    .midi-toggle:active .midi-toggle-thumb {
-      transform: scale(0.9);
+    .result-bubble::before {
+      content: '';
+      position: absolute;
+      left: -6px;
+      bottom: 8px;
+      width: 13px;
+      height: 13px;
+      background: rgba(252, 247, 238, 0.86);
+      transform: skewX(-28deg);
+      z-index: -1;
     }
-
-    .midi-toggle.active:active .midi-toggle-thumb {
-      transform: translateX(20px) scale(0.9);
+    .result-text.correct, .result-text.wrong { display: block; color: inherit; }
+    .keyboard-container { margin: 0 auto 10px; }
+    .keyboard-container svg { width: min(100%, 420px); overflow: visible; }
+    .visual-container { overflow: visible; }
+    .settings-container { max-width: 500px; padding: 30px 28px; gap: 22px; margin-top: 32px; }
+    .settings-container.wide-panel { max-width: 740px; }
+    .settings-panel, .settings-panel-static { gap: 22px; }
+    .settings-group { gap: 12px; }
+    .settings-title { margin-bottom: 8px; }
+    .custom-checkbox, .custom-radio { padding: 9px 15px; gap: 8px; }
+    .checkbox-grid-compact { gap: 12px 12px; }
+    .key-grid { gap: 12px; }
+    .preset-btns { gap: 10px; margin-bottom: 16px; }
+    .preset-btns button { padding: 6px 14px; }
+    .guitar-submode-switch { gap: 14px; margin-bottom: 8px; }
+    .guitar-settings-columns { gap: 26px; }
+    .guitar-settings-col { gap: 20px; padding: 20px; }
+    .key-sig-panel { padding: 20px; }
+    .guide-text { margin-top: 22px; }
+    @media (max-width: 560px) {
+      body { padding: 18px 12px 30px; }
+      .quiz-container { padding: 22px 18px 20px; }
+      .settings-container { padding: 24px 18px; }
+    }
+    @media (min-width: 900px) {
+      body { zoom: 1.2; min-height: calc(100vh / 1.2); }
     }
   </style>
 </head>
 <body>
 
-  <div class="series-title">鍵盤で答えて覚えるシリーズ</div>
+  <div class="series-title">【鍵盤で答えて記憶】</div>
 
   <div class="app-mode-tabs">
     <button class="tab-btn active" onclick="switchAppMode('circle')">音名と位置関係</button>
@@ -820,11 +946,26 @@
 
     <div class="visual-container" id="visualContainer"></div>
 
-    <div class="result-message-area" id="resultMessageArea"></div>
-
     <div class="keyboard-stage">
+      <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+        <filter id="keyRaise" x="-20%" y="-10%" width="140%" height="130%">
+          <feDropShadow dx="2" dy="3" stdDeviation="2.2" flood-color="#a8845c" flood-opacity="0.40"/>
+          <feDropShadow dx="-1.5" dy="-1.5" stdDeviation="1.4" flood-color="#fffaf0" flood-opacity="0.95"/>
+        </filter>
+        <filter id="keyInset" x="-10%" y="-10%" width="120%" height="120%">
+          <feComponentTransfer in="SourceAlpha"><feFuncA type="table" tableValues="1 0"/></feComponentTransfer>
+          <feGaussianBlur stdDeviation="3"/>
+          <feOffset dx="2" dy="3" result="off"/>
+          <feFlood flood-color="#4a3320" flood-opacity="0.45"/>
+          <feComposite in2="off" operator="in"/>
+          <feComposite in2="SourceAlpha" operator="in" result="shadow"/>
+          <feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="shadow"/></feMerge>
+        </filter>
+      </defs></svg>
       <div class="keyboard-container" id="keyboardContainer"></div>
     </div>
+
+    <div class="result-message-area" id="resultMessageArea" aria-live="polite"></div>
 
   </div>
 
@@ -832,8 +973,8 @@
   <div class="settings-container">
 
     <div class="midi-status" id="midiStatus">
-      <span id="midiStatusText">MIDI機器を探しています...</span>
-      <button type="button" id="midiToggleBtn" class="midi-toggle active" title="MIDI入力 ON/OFF" role="switch" aria-checked="true"><span class="midi-toggle-label">MIDI</span><span class="midi-toggle-track"><span class="midi-toggle-thumb"></span></span></button>
+      <span id="midiStatusText">MIDI: 未接続</span>
+      <button type="button" id="midiConnectBtn" class="midi-connect-btn">MIDIに接続</button>
     </div>
 
     <!-- 音色設定（共通） -->
@@ -1074,6 +1215,59 @@
       { id: 10, clock: 10, freq: "A#4", isAccidental: true,  doNames: ["Li", "Te"],       cdeNames: ["A#", "Bb"], colorName: "Purple",        colorHex: "#9b5de5" },
       { id: 11, clock: 11, freq: "B4",  isAccidental: false, doNames: ["Ti"],             cdeNames: ["B"],       colorName: "Red-Purple",    colorHex: "#f15bb5" }
     ];
+
+    // --- 色計画 v4 ---
+    // 色相は従来の割り当て(Do=赤 … Ti=赤紫)のまま。知覚的な明るさ(OKLCH)をそろえ、
+    // 12色が「同じ絵の具セット」に見えるようにする。UI側は無彩色にして、色は音の情報だけが持つ。
+    function _lin(c) { c /= 255; return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }
+    function hexToOklchHue(hex) {
+      const n = parseInt(hex.replace('#', ''), 16);
+      const r = _lin(n >> 16), g = _lin((n >> 8) & 255), b = _lin(n & 255);
+      const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
+      const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
+      const s2 = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+      const A = 1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s2;
+      const B = 0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s2;
+      return (Math.atan2(B, A) * 180 / Math.PI + 360) % 360;
+    }
+    function oklchToHex(L, C, h) {
+      const hr = h * Math.PI / 180;
+      for (; C >= 0; C -= 0.004) {
+        const a = C * Math.cos(hr), b = C * Math.sin(hr);
+        const l = Math.pow(L + 0.3963377774 * a + 0.2158037573 * b, 3);
+        const m = Math.pow(L - 0.1055613458 * a - 0.0638541728 * b, 3);
+        const s2 = Math.pow(L - 0.0894841775 * a - 1.2914855480 * b, 3);
+        const lin = [4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s2,
+                    -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s2,
+                    -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s2];
+        if (lin.every(v => v > -0.0005 && v < 1.0005)) {
+          return '#' + lin.map(v => {
+            v = Math.min(1, Math.max(0, v));
+            v = v <= 0.0031308 ? 12.92 * v : 1.055 * Math.pow(v, 1 / 2.4) - 0.055;
+            return Math.round(v * 255).toString(16).padStart(2, '0');
+          }).join('');
+        }
+      }
+      return '#808080';
+    }
+    // 黄とオレンジ寄りの黄は近いので、明るさだけ少しずらして見分けを確保
+    const L_OFFSET = { 0: -0.04, 2: 0.08, 3: 0.16, 4: 0.20, 5: 0.10, 6: -0.03, 7: 0.07, 8: 0.06, 9: -0.10, 11: 0.02 };
+    const C_BY = { 0: 0.19, 2: 0.23, 3: 0.16, 4: 0.18, 5: 0.20, 6: 0.16, 7: 0.13, 8: 0.13, 9: 0.17, 11: 0.16 };
+    const H_SHIFT = { 0: 4, 2: -4, 3: -5, 5: -8, 6: -18, 7: 6, 9: 8, 11: -14 };   // 色名(動物: cardinal, red panda, orangutan, giraffe, chick, frog, crocodile, peacock, dolphin, bat, jellyfish, flamingo)に合わせた微調整
+    const NICKNAMES = ['cardinal', 'red panda', 'orangutan', 'giraffe', 'chick', 'frog', 'crocodile', 'peacock', 'dolphin', 'bat', 'jellyfish', 'flamingo'];
+    NOTES.forEach(n => {
+      n.nickName = NICKNAMES[n.id];
+      const h = hexToOklchHue(n.colorHex) + (H_SHIFT[n.id] || 0), o = L_OFFSET[n.id] || 0;
+      const C0 = C_BY[n.id] || 0.15;
+      n.needleHex = (n.id === 3 || n.id === 4) ? '#fffaf0' : '#f3e3c4';   // 針・目盛り: Ri/Me と Mi は元のクリーム色、他は濃い目のクリーム色
+      n.fillHex  = oklchToHex(0.65 + o, C0, h);   // 面・鍵盤の塗り
+      n.lightHex = oklchToHex(0.72 + o, C0 - 0.01, h);   // 面のハイライト側
+      n.deepHex  = oklchToHex(0.56 + o, C0, h);   // 針が進んだ領域の濃色
+      n.inkHex   = oklchToHex(0.46, 0.13, h);       // 文字色
+      // ノブの影色: 暖色の基本影に、その音の深い色を少し混ぜる
+      const sc = blendHex('#96704c', n.deepHex, 0.40).slice(1);
+      n.shRGB = [0, 2, 4].map(i => parseInt(sc.substr(i, 2), 16)).join(',');
+    });
 
     const GUITAR_STRINGS = [
       { stringNum: 1, openPitch: 4, openFreq: "E4" },
@@ -1703,14 +1897,14 @@
       const fretMarkerY = boardBottom + 9;
       const fretMarkerRadius = 2.2;
       [3, 5, 7, 9].forEach(f => {
-        svg += `<circle cx="${cellCenter(f)}" cy="${fretMarkerY}" r="${fretMarkerRadius}" fill="#8a7a5a"/>`;
+        svg += `<circle cx="${cellCenter(f)}" cy="${fretMarkerY}" r="${fretMarkerRadius}" fill="#a8927a"/>`;
       });
-      svg += `<circle cx="${cellCenter(12) - 5}" cy="${fretMarkerY}" r="${fretMarkerRadius}" fill="#8a7a5a"/>`;
-      svg += `<circle cx="${cellCenter(12) + 5}" cy="${fretMarkerY}" r="${fretMarkerRadius}" fill="#8a7a5a"/>`;
+      svg += `<circle cx="${cellCenter(12) - 5}" cy="${fretMarkerY}" r="${fretMarkerRadius}" fill="#a8927a"/>`;
+      svg += `<circle cx="${cellCenter(12) + 5}" cy="${fretMarkerY}" r="${fretMarkerRadius}" fill="#a8927a"/>`;
 
       for (let f = 0; f <= numFrets; f++) {
         const x = (f === 0) ? left : cellCenter(f);
-        svg += `<text x="${x}" y="${height - 4}" font-size="10" fill="#8a7a5a" text-anchor="middle" font-family="sans-serif">${f}</text>`;
+        svg += `<text x="${x}" y="${height - 4}" font-size="10" fill="#a8927a" text-anchor="middle" font-family="sans-serif">${f}</text>`;
       }
 
       if (Array.isArray(gridNotes)) {
@@ -1752,8 +1946,8 @@
       const renderer = new Vex.Flow.Renderer(container, Vex.Flow.Renderer.Backends.SVG);
       renderer.resize(width, height);
       const context = renderer.getContext();
-      context.setFillStyle('#5c5548');
-      context.setStrokeStyle('#5c5548');
+      context.setFillStyle('#4d3f33');
+      context.setStrokeStyle('#5a493a');
 
       const staveX = 38;
       const staveY = 42;
@@ -1775,6 +1969,7 @@
       }
 
       stave.setContext(context).draw();
+      context.setStrokeStyle('#4d3f33');
 
       const m = noteItem.note.match(/^([A-G])([#b]?)(-?\d+)$/);
       if (!m) return;
@@ -1819,56 +2014,154 @@
       return '#' + [mix(ar, br), mix(ag, bg), mix(ab, bb)].map(v => v.toString(16).padStart(2, '0')).join('');
     }
 
+    // v21: 面に埋め込まれた(くぼんだ)ノブ。穴の壁は左上が影・右下が光、
+    // 底の縁は左上が暗く右下が明るい。針と目盛りは底から少し浮いて小さな影を落とす。
+    let clockBadgeSeq = 0;
     function renderClockBadge(noteId, size) {
       const note = NOTES.find(n => n.id === noteId);
-      const center = size / 2;
-      const radius = size * 0.46;
-      const notchLength = size * 0.14;
-      const handRadius = radius * 0.6;
-      const beige = '#f3e9db';
-      const keyWhite = '#fdf9f0';
-      const fillColor = blendHex(note.colorHex, beige, 0.20);
-      const handColor = keyWhite;
-
-      // アプリ全体のベージュを少し混ぜた色面。
-      // 針・目盛りは白鍵と同じ色にそろえる。
-      let svg = `<circle cx="${center}" cy="${center}" r="${radius}" fill="${fillColor}" stroke="none"/>`;
-
-      [0, 3, 6, 9].forEach(idx => {
-        const angle = (idx * 30 - 90) * (Math.PI / 180);
-        const outer = radius * 0.8;
-        const x1 = center + outer * Math.cos(angle);
-        const y1 = center + outer * Math.sin(angle);
-        const x2 = center + (outer - notchLength) * Math.cos(angle);
-        const y2 = center + (outer - notchLength) * Math.sin(angle);
-        svg += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${handColor}" stroke-width="${Math.max(1.2, size * 0.05)}" stroke-linecap="round" opacity="0.9"/>`;
+      const small = size < 30;   // 鍵盤上の小さいノブは壁を太く・濃くして見やすくする
+      const c = size / 2, r = size * (small ? 0.43 : 0.455), rf = r * 0.90, rw = r + size * (small ? 0.085 : 0.04);
+      const gid = 'cb' + (clockBadgeSeq++);
+      const lg = (id, stops) => `<linearGradient id="${gid}${id}" x1="0" y1="0" x2="1" y2="1">${stops.map(([o, col]) => `<stop offset="${o}" stop-color="${col}"/>`).join('')}</linearGradient>`;
+      const defs = '<defs>' +
+        lg('w', small ? [[0, '#8a6238'], [0.5, '#c9a67c'], [1, '#ffffff']] : [[0, '#b99468'], [1, '#fffcf2']]) +
+        lg('o', [[0, note.deepHex], [0.55, note.fillHex], [1, blendHex(note.lightHex, '#ffffff', 0.25)]]) +
+        lg('i', [[0, blendHex(note.fillHex, note.deepHex, 0.45)], [1, blendHex(note.fillHex, note.lightHex, 0.5)]]) +
+        '</defs>';
+      let svg = defs;
+      svg += `<circle cx="${c}" cy="${c}" r="${rw}" fill="url(#${gid}w)" style="filter:blur(${(size * (small ? 0.016 : 0.012)).toFixed(2)}px)"/>`;
+      svg += `<circle cx="${c}" cy="${c}" r="${r}" fill="url(#${gid}o)"/>`;
+      svg += `<circle cx="${c}" cy="${c}" r="${rf}" fill="url(#${gid}i)"/>`;
+      const col = note.needleHex;
+      let top = '';
+      const a = (noteId * 30 - 90) * Math.PI / 180;
+      top += `<line x1="${c}" y1="${c}" x2="${c + rf * 0.58 * Math.cos(a)}" y2="${c + rf * 0.58 * Math.sin(a)}" stroke="${col}" stroke-width="${Math.max(1.8, size * 0.115)}" stroke-linecap="round"/>`;
+      [0, 3, 6, 9].forEach(i => {
+        const t = (i * 30 - 90) * Math.PI / 180;
+        top += `<circle cx="${c + rf * 0.80 * Math.cos(t)}" cy="${c + rf * 0.80 * Math.sin(t)}" r="${Math.max(0.8, size * 0.036)}" fill="${col}"/>`;
       });
+      svg += `<g style="filter:drop-shadow(${(size * 0.012).toFixed(2)}px ${(size * 0.022).toFixed(2)}px ${(size * 0.014).toFixed(2)}px rgba(${note.shRGB},0.6))">${top}</g>`;
+      return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="overflow:visible">${svg}</svg>`;
+    }
 
-      const angle = (noteId * 30 - 90) * (Math.PI / 180);
-      const hx = center + handRadius * Math.cos(angle);
-      const hy = center + handRadius * Math.sin(angle);
-      svg += `<line x1="${center}" y1="${center}" x2="${hx}" y2="${hy}" stroke="${handColor}" stroke-width="${Math.max(1.6, size * 0.1)}" stroke-linecap="round"/>`;
-      svg += `<circle cx="${center}" cy="${center}" r="${Math.max(1.2, size * 0.08)}" fill="${handColor}"/>`;
+    // 鍵の上に載せる簡素な方位図形: 円・目盛り・針だけ。色は白鍵=濃い茶 / 黒鍵=クリーム
+    function renderCompassSimple(noteId, size, color) {
+      const c = size / 2, r = size * 0.45, sw = Math.max(1, size * 0.075);
+      let svg = `<circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="${color}" stroke-width="${sw}"/>`;
+      [0, 3, 6, 9].forEach(i => {
+        const t = (i * 30 - 90) * Math.PI / 180;
+        svg += `<line x1="${c + r * 0.86 * Math.cos(t)}" y1="${c + r * 0.86 * Math.sin(t)}" x2="${c + r * 0.62 * Math.cos(t)}" y2="${c + r * 0.62 * Math.sin(t)}" stroke="${color}" stroke-width="${Math.max(0.8, size * 0.06)}" stroke-linecap="round"/>`;
+      });
+      const a = (noteId * 30 - 90) * Math.PI / 180;
+      svg += `<line x1="${c}" y1="${c}" x2="${c + r * 0.66 * Math.cos(a)}" y2="${c + r * 0.66 * Math.sin(a)}" stroke="${color}" stroke-width="${Math.max(1.2, size * 0.1)}" stroke-linecap="round"/>`;
+      return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true">${svg}</svg>`;
+    }
 
-      return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">${svg}</svg>`;
+    // ---- 12匹の動物イラスト (viewBox 32x32)。色は各音のパレットから取る。正解メッセージの末尾に表示 ----
+    function renderNoteArt(id, size, cutout) {
+      const n = NOTES.find(x => x.id === id);
+      const f = n.fillHex, d = n.deepHex, l = n.lightHex;
+      const bg = blendHex(f, '#ffffff', 0.80);
+      const soft = blendHex(f, '#ffffff', 0.55);
+      const ink = '#3b2e28', cr = '#fffaf0';
+      const beak = NOTES[3].fillHex, beakO = NOTES[2].fillHex;
+      const eye = (x, y, r) => `<circle cx="${x}" cy="${y}" r="${r || 1.2}" fill="${ink}"/>`;
+      const eyeW = (x, y) => `<circle cx="${x}" cy="${y}" r="2.7" fill="${cr}"/><circle cx="${x}" cy="${y + 0.2}" r="1.5" fill="${ink}"/>`;
+      let b = cutout ? '' : `<circle cx="16" cy="16" r="15.5" fill="${bg}"/>`;
+      switch (id) {
+        case 0: // カーディナル
+          b += `<path d="M13 11 C13 7 15.2 4.2 18 3.4 C17.4 5.4 18.4 7.4 19.6 11Z" fill="${f}"/><ellipse cx="16" cy="18.5" rx="9.6" ry="9.2" fill="${f}"/>` +
+               `<ellipse cx="12" cy="17.2" rx="4.3" ry="2.9" fill="${ink}"/><ellipse cx="20" cy="17.2" rx="4.3" ry="2.9" fill="${ink}"/><rect x="14" y="16" width="4" height="1.5" fill="${ink}"/>` +
+               `<path d="M13.4 20.4 L18.6 20.4 L16 24.6Z" fill="${beak}"/>`;
+          break;
+        case 1: // レッサーパンダ
+          b += `<path d="M6.4 12 L7 6.2 L13.4 9.8Z" fill="${d}"/><path d="M25.6 12 L25 6.2 L18.6 9.8Z" fill="${d}"/><path d="M8.2 10.6 L8.4 8.2 L10.8 9.6Z" fill="${cr}"/><path d="M23.8 10.6 L23.6 8.2 L21.2 9.6Z" fill="${cr}"/>` +
+               `<ellipse cx="16" cy="18" rx="11" ry="9" fill="${f}"/>` +
+               `<path d="M8.6 15.5 C10 17 10.6 19.5 10 22 C8.4 20.5 7.8 17.8 8.6 15.5Z" fill="${cr}"/><path d="M23.4 15.5 C22 17 21.4 19.5 22 22 C23.6 20.5 24.2 17.8 23.4 15.5Z" fill="${cr}"/>` +
+               `<ellipse cx="16" cy="21.8" rx="5.4" ry="3.8" fill="${cr}"/>` + eye(12, 17.3) + eye(20, 17.3) + `<ellipse cx="16" cy="20.3" rx="1.5" ry="1" fill="${ink}"/><path d="M14.4 22.4 Q16 24 17.6 22.4" fill="none" stroke="${ink}" stroke-width="0.8" stroke-linecap="round"/>`;
+          break;
+        case 2: { // オランウータン
+          const face = blendHex(d, '#d2a982', 0.6), muz = blendHex(d, '#e2c29f', 0.7);
+          b += `<ellipse cx="16" cy="16.5" rx="11.2" ry="12.6" fill="${f}"/><ellipse cx="16" cy="18" rx="7.2" ry="7.6" fill="${face}"/><ellipse cx="16" cy="22" rx="4.6" ry="3.4" fill="${muz}"/>` +
+               eye(12.8, 17) + eye(19.2, 17) + `<circle cx="14.8" cy="21" r="0.55" fill="${ink}"/><circle cx="17.2" cy="21" r="0.55" fill="${ink}"/><path d="M13.6 23.4 Q16 24.8 18.4 23.4" fill="none" stroke="${ink}" stroke-width="0.9" stroke-linecap="round"/>`;
+          break;
+        }
+        case 3: // キリン
+          b += `<path d="M12.6 10 L11.6 5.6" stroke="${d}" stroke-width="1.5" stroke-linecap="round"/><path d="M19.4 10 L20.4 5.6" stroke="${d}" stroke-width="1.5" stroke-linecap="round"/><circle cx="11.4" cy="5" r="1.6" fill="${d}"/><circle cx="20.6" cy="5" r="1.6" fill="${d}"/>` +
+               `<ellipse cx="6.6" cy="13.4" rx="3.6" ry="2.4" transform="rotate(-30 6.6 13.4)" fill="${f}"/><ellipse cx="25.4" cy="13.4" rx="3.6" ry="2.4" transform="rotate(30 25.4 13.4)" fill="${f}"/>` +
+               `<ellipse cx="6.8" cy="13.4" rx="1.9" ry="1.1" transform="rotate(-30 6.8 13.4)" fill="${d}"/><ellipse cx="25.2" cy="13.4" rx="1.9" ry="1.1" transform="rotate(30 25.2 13.4)" fill="${d}"/>` +
+               `<ellipse cx="16" cy="17.2" rx="8.4" ry="8.4" fill="${f}"/><ellipse cx="16" cy="22.6" rx="5.2" ry="3.7" fill="${soft}"/>` +
+               `<circle cx="14.6" cy="22.4" r="0.6" fill="${d}"/><circle cx="17.4" cy="22.4" r="0.6" fill="${d}"/>` + eye(12, 17.4, 1.3) + eye(20, 17.4, 1.3);
+          break;
+        case 4: // ヒヨコ
+          b += `<ellipse cx="16" cy="6.8" rx="1.3" ry="2.4" fill="${f}"/><ellipse cx="13.4" cy="7.8" rx="1.2" ry="2.2" transform="rotate(-32 13.4 7.8)" fill="${f}"/><ellipse cx="18.6" cy="7.8" rx="1.2" ry="2.2" transform="rotate(32 18.6 7.8)" fill="${f}"/>` +
+               `<ellipse cx="5.6" cy="19.5" rx="2" ry="2.6" fill="${f}"/><ellipse cx="26.4" cy="19.5" rx="2" ry="2.6" fill="${f}"/><circle cx="16" cy="18" r="10.4" fill="${f}"/>` +
+               eye(11.6, 17.4, 1.3) + eye(20.4, 17.4, 1.3) + `<path d="M14.2 19.8 L17.8 19.8 L16 22Z" fill="${beakO}"/>`;
+          break;
+        case 5: // カエル
+          b += `<ellipse cx="16" cy="19.5" rx="11.4" ry="8.4" fill="${f}"/><circle cx="10.2" cy="12.2" r="4.4" fill="${f}"/><circle cx="21.8" cy="12.2" r="4.4" fill="${f}"/>` +
+               eyeW(10.2, 12.2) + eyeW(21.8, 12.2) + `<ellipse cx="16" cy="24" rx="8" ry="4.4" fill="${soft}"/>` +
+               `<circle cx="14.4" cy="19" r="0.6" fill="${d}"/><circle cx="17.6" cy="19" r="0.6" fill="${d}"/>`;
+          break;
+        case 6: // ワニ
+          b += `<ellipse cx="16" cy="19.5" rx="12.4" ry="8" fill="${f}"/><circle cx="10.4" cy="12.6" r="3.6" fill="${f}"/><circle cx="21.6" cy="12.6" r="3.6" fill="${f}"/>` +
+               eyeW(10.4, 12.6) + eyeW(21.6, 12.6) + `<path d="M5 22 C9 27 23 27 27 22 C24 23.4 8 23.4 5 22Z" fill="${soft}"/>` +
+               `<circle cx="14.2" cy="18.4" r="0.6" fill="${d}"/><circle cx="17.8" cy="18.4" r="0.6" fill="${d}"/>` +
+               `<path d="M6.8 21.8 L8.4 25.2 L10 22.4Z" fill="${cr}"/><path d="M11 23.2 L12.4 26.2 L13.8 23.6Z" fill="${cr}"/><path d="M25.2 21.8 L23.6 25.2 L22 22.4Z" fill="${cr}"/><path d="M21 23.2 L19.6 26.2 L18.2 23.6Z" fill="${cr}"/>`;
+          break;
+        case 7: // クジャク
+          b += `<path d="M16 11 L16 6.2" stroke="${d}" stroke-width="1" stroke-linecap="round"/><path d="M14 11.4 L12.4 7.8" stroke="${d}" stroke-width="1" stroke-linecap="round"/><path d="M18 11.4 L19.6 7.8" stroke="${d}" stroke-width="1" stroke-linecap="round"/>` +
+               `<ellipse cx="16" cy="5.4" rx="1.7" ry="2.5" fill="${f}"/><ellipse cx="11.9" cy="6.9" rx="1.6" ry="2.3" transform="rotate(-28 11.9 6.9)" fill="${f}"/><ellipse cx="20.1" cy="6.9" rx="1.6" ry="2.3" transform="rotate(28 20.1 6.9)" fill="${f}"/>` +
+               `<ellipse cx="16" cy="19.4" rx="10.4" ry="9.4" fill="${f}"/><path d="M8 24 Q16 29 24 24 Q22.4 20.4 16 20.4 Q9.6 20.4 8 24Z" fill="${blendHex(f, '#ffffff', 0.88)}"/>` +
+               eye(11.2, 17.6, 1.3) + eye(20.8, 17.6, 1.3) + `<path d="M13.6 19.4 L18.4 19.4 L16 22.8Z" fill="${beak}"/>`;
+          break;
+        case 8: // イルカ
+          b += `<path d="M14.4 11 C14.4 6.6 16.4 4.4 18.2 3.8 C18 7.4 18.6 9.2 19.2 11Z" fill="${f}"/>` +
+               `<ellipse cx="6" cy="23" rx="3.6" ry="2" transform="rotate(35 6 23)" fill="${f}"/><ellipse cx="26" cy="23" rx="3.6" ry="2" transform="rotate(-35 26 23)" fill="${f}"/>` +
+               `<ellipse cx="16" cy="19" rx="11.2" ry="9.4" fill="${f}"/><ellipse cx="16" cy="24" rx="8.4" ry="4.3" fill="${blendHex(f, '#ffffff', 0.82)}"/><ellipse cx="16" cy="23.4" rx="4.8" ry="2.2" fill="${soft}"/>` +
+               eye(11.6, 19.2, 1.3) + eye(20.4, 19.2, 1.3);
+          break;
+        case 9: // コウモリ
+          b += `<path d="M10 15 C7 12 3.6 12 1.8 14.4 C3.4 15.2 3.4 17 3 19.2 C4.8 18.6 6 19.6 6.4 21.2 C7.8 20.2 9 20.6 10.2 21.8Z" fill="${d}"/><path d="M22 15 C25 12 28.4 12 30.2 14.4 C28.6 15.2 28.6 17 29 19.2 C27.2 18.6 26 19.6 25.6 21.2 C24.2 20.2 23 20.6 21.8 21.8Z" fill="${d}"/>` +
+               `<path d="M10.2 14.2 L10.8 7.4 L15 12Z" fill="${f}"/><path d="M21.8 14.2 L21.2 7.4 L17 12Z" fill="${f}"/>` +
+               `<circle cx="16" cy="18.4" r="7.4" fill="${f}"/>` + eye(13.2, 17.8) + eye(18.8, 17.8) + `<path d="M14.6 20.6 Q16 21.8 17.4 20.6" fill="none" stroke="${ink}" stroke-width="0.8" stroke-linecap="round"/>`;
+          break;
+        case 10: // クラゲ
+          b += [[10.6, 19, 8.6, 26.6], [14.2, 19, 15.6, 28], [17.8, 19, 16.4, 28], [21.4, 19, 23.4, 26.6]].map(p =>
+                 `<path d="M${p[0]} ${p[1]} C${p[0]} 23 ${p[2] - 1.6} 24 ${p[2]} ${p[3]}" fill="none" stroke="${f}" stroke-width="2.1" stroke-linecap="round"/>`).join('') +
+               `<path d="M7 17.6 C7 9 10.8 5.8 16 5.8 C21.2 5.8 25 9 25 17.6 C25 19 24 19.6 22.6 19.6 H9.4 C8 19.6 7 19 7 17.6Z" fill="${f}"/>` +
+               `<circle cx="20.6" cy="9.8" r="1.4" fill="#fff" opacity="0.55"/><circle cx="23" cy="12.6" r="1" fill="#fff" opacity="0.5"/>` + eye(12.6, 14.6) + eye(19.4, 14.6);
+          break;
+        case 11: // フラミンゴ
+          b += `<path d="M14 12 C19.6 9.6 22.6 13.4 20.4 18 C18.8 21.4 17 24 19.2 28.6" fill="none" stroke="${f}" stroke-width="5.2" stroke-linecap="round"/><circle cx="14" cy="11.6" r="5.2" fill="${f}"/>` +
+               `<path d="M9.8 10.6 C6.2 10.4 4.6 13 5 17.2 C7.8 17 9.8 14.8 10.4 12.6Z" fill="${blendHex(f, '#ffffff', 0.6)}"/><path d="M5.1 15 C5.6 14.2 6.4 13.7 7.2 13.6 L7.7 16.4 C6.7 16.9 5.8 17.1 5 17.2Z" fill="${ink}"/>` + eye(13.6, 10.4, 1.1);
+          break;
+      }
+      if (cutout) {
+        // 動物の輪郭だけを切り抜き、旧・背景の淡い色でフチを付ける(シール風)
+        const fid = 'ao' + id;
+        return `<svg width="${size}" height="${size}" viewBox="0 0 32 32" aria-hidden="true" style="overflow:visible">` +
+          `<defs><filter id="${fid}" x="-30%" y="-30%" width="160%" height="160%"><feMorphology in="SourceAlpha" operator="dilate" radius="1" result="d"/>` +
+          `<feGaussianBlur in="d" stdDeviation="0.75" result="bl"/><feComponentTransfer in="bl" result="sm"><feFuncA type="linear" slope="1.7" intercept="-0.25"/></feComponentTransfer>` +
+          `<feFlood flood-color="${bg}"/><feComposite in2="sm" operator="in" result="o"/><feMerge><feMergeNode in="o"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>` +
+          `<g filter="url(#${fid})">${b}</g></svg>`;
+      }
+      return `<svg width="${size}" height="${size}" viewBox="0 0 32 32" aria-hidden="true">${b}</svg>`;
     }
 
     function renderInteractiveKeyboard() {
       const wWidth = 46;
-      const wHeight = 126;
+      const wHeight = 170;
       const bWidth = 32;
-      const bHeight = 78;
+      const bHeight = 100;
       const svgWidth = wWidth * 7;
-      const iconSize = 20;
-      const labelRowHeight = 24;
-      const iconRowHeight = iconSize + 6;
-      const labelAreaHeight = labelRowHeight + iconRowHeight;
+      const topPad = 8;   // 上の余白(影が切れない分)
+      const keyTop = topPad;
 
       const whiteKeys = [
         { id: 0, x: 0 }, { id: 2, x: wWidth }, { id: 4, x: wWidth * 2 },
         { id: 5, x: wWidth * 3 }, { id: 7, x: wWidth * 4 }, { id: 9, x: wWidth * 5 }, { id: 11, x: wWidth * 6 }
       ];
-
       const blackKeys = [
         { id: 1, x: wWidth - bWidth / 2 }, { id: 3, x: wWidth * 2 - bWidth / 2 },
         { id: 6, x: wWidth * 4 - bWidth / 2 }, { id: 8, x: wWidth * 5 - bWidth / 2 }, { id: 10, x: wWidth * 6 - bWidth / 2 }
@@ -1876,43 +2169,46 @@
 
       let whiteSvg = '';
       whiteKeys.forEach(k => {
-        whiteSvg += `<rect class="key-white" data-id="${k.id}" x="${k.x}" y="${labelAreaHeight}" width="${wWidth}" height="${wHeight}" rx="4"/>`;
+        whiteSvg += `<rect class="key-white" data-id="${k.id}" x="${k.x + 1.5}" y="${keyTop}" width="${wWidth - 3}" height="${wHeight}" rx="6"/>`;
       });
-
       let blackSvg = '';
       blackKeys.forEach(k => {
-        blackSvg += `<rect class="key-black" data-id="${k.id}" x="${k.x}" y="${labelAreaHeight}" width="${bWidth}" height="${bHeight}" rx="3"/>`;
+        blackSvg += `<rect class="key-black" data-id="${k.id}" x="${k.x}" y="${keyTop}" width="${bWidth}" height="${bHeight}" rx="5"/>`;
       });
 
-      // 白鍵・黒鍵とも同じ x 座標に「音名 → 方位図形」を縦積みで配置。
-      // 鍵盤そのものとは別レイヤーにして、参考画像の上部情報帯を再現する。
-      const allKeyCenters = [
-        ...whiteKeys.map(k => ({ id: k.id, x: k.x + wWidth / 2 })),
-        ...blackKeys.map(k => ({ id: k.id, x: k.x + bWidth / 2 }))
+      // 各鍵の上に、下から「音名ラベル → 動物 → 方位図形」を縦に積む(回答後に表示)
+      const blackIds = [1, 3, 6, 8, 10];
+      const centers = [
+        ...whiteKeys.map(k => ({ id: k.id, x: k.x + wWidth / 2, black: false })),
+        ...blackKeys.map(k => ({ id: k.id, x: k.x + bWidth / 2, black: true }))
       ];
-
-      let labelSvg = '';
-      allKeyCenters.forEach(k => {
-        const label = NOTES.find(n => n.id === k.id).doNames.join('');
-        labelSvg += `<text class="key-label" data-label-id="${k.id}" x="${k.x}" y="${labelRowHeight}">${label}</text>`;
-      });
-
-      let iconSvg = '';
-      allKeyCenters.forEach(k => {
-        iconSvg += `<g class="key-icon" data-icon-id="${k.id}" transform="translate(${k.x - iconSize / 2}, ${labelRowHeight + 4})">${renderClockBadge(k.id, iconSize)}</g>`;
+      let overlay = '';
+      centers.forEach(k => {
+        const note = NOTES.find(n => n.id === k.id);
+        const bottom = keyTop + (k.black ? bHeight : wHeight);
+        const lw = k.black ? 28 : 31, lh = k.black ? 14 : 15, art = k.black ? 19 : 22, cs = k.black ? 13 : 15;
+        const labelY = bottom - (k.black ? 6 : 7) - lh;
+        const artY = labelY - 3 - art;
+        const compY = artY - 3 - cs;
+        const label = note.doNames.join('');
+        const halo = darkenHex(note.deepHex, 30);
+        overlay += `<rect class="key-label-bg" x="${k.x - lw / 2}" y="${labelY}" width="${lw}" height="${lh}" rx="4" fill="${note.deepHex}"/>` +
+          `<text class="key-label" x="${k.x}" y="${labelY + lh / 2 + 3.2}" style="fill:#ffffff; stroke:${halo}; stroke-width:0.5px; paint-order:stroke;">${label}</text>` +
+          `<g class="key-art" transform="translate(${k.x - art / 2}, ${artY})">${renderNoteArt(k.id, art, true)}</g>` +
+          `<g class="key-icon" transform="translate(${k.x - cs / 2}, ${compY})">${renderCompassSimple(k.id, cs, k.black ? '#fffaf0' : '#4d3a2b')}</g>`;
       });
 
       const container = document.getElementById('keyboardContainer');
+      const svgH = keyTop + wHeight + 16;
       container.innerHTML = `
-        <svg width="${svgWidth}" height="${wHeight + labelAreaHeight + 4}" viewBox="0 0 ${svgWidth} ${wHeight + labelAreaHeight + 4}">
+        <svg width="${svgWidth}" height="${svgH}" viewBox="0 0 ${svgWidth} ${svgH}">
           ${whiteSvg}
           ${blackSvg}
-          ${labelSvg}
-          ${iconSvg}
+          ${overlay}
         </svg>
       `;
 
-      container.querySelectorAll('rect').forEach(rect => {
+      container.querySelectorAll('rect.key-white, rect.key-black').forEach(rect => {
         const handlePress = (e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -1961,7 +2257,7 @@
 
     function showAnswerKeys(pressedPitchClass, targetPitchClass, isCorrect) {
       document.querySelectorAll('.key-white, .key-black').forEach(el => {
-        el.classList.remove('active', 'active-correct', 'active-wrong');
+        el.classList.remove('active', 'active-correct', 'active-wrong'); el.style.removeProperty('--k');
       });
 
       const svgEl = document.querySelector('#keyboardContainer svg');
@@ -1969,20 +2265,20 @@
 
       if (isCorrect) {
         const correctKey = document.querySelector(`.key-white[data-id="${targetPitchClass}"], .key-black[data-id="${targetPitchClass}"]`);
-        if (correctKey) correctKey.classList.add('active-correct');
+        if (correctKey) { correctKey.classList.add('active-correct'); correctKey.style.setProperty('--k', NOTES.find(n => n.id === targetPitchClass).fillHex); }
       } else {
         const wrongKey = document.querySelector(`.key-white[data-id="${pressedPitchClass}"], .key-black[data-id="${pressedPitchClass}"]`);
         if (wrongKey) wrongKey.classList.add('active-wrong');
 
         const correctKey = document.querySelector(`.key-white[data-id="${targetPitchClass}"], .key-black[data-id="${targetPitchClass}"]`);
-        if (correctKey) correctKey.classList.add('active-correct');
+        if (correctKey) { correctKey.classList.add('active-correct'); correctKey.style.setProperty('--k', NOTES.find(n => n.id === targetPitchClass).fillHex); }
       }
     }
 
     function nextQuestion() {
       isAnswered = false;
       document.querySelectorAll('.key-white, .key-black').forEach(el => {
-        el.classList.remove('active', 'active-correct', 'active-wrong');
+        el.classList.remove('active', 'active-correct', 'active-wrong'); el.style.removeProperty('--k');
       });
       const svgEl = document.querySelector('#keyboardContainer svg');
       if (svgEl) svgEl.classList.remove('labels-visible');
@@ -2022,17 +2318,17 @@
         }
 
         if (mode === 'clock') {
-          rootEl.innerHTML = renderSVG(rootNote.id, rootNote.id, null, true, 60);
+          rootEl.innerHTML = renderClockBadge(rootNote.id, 66);
         } else if (mode === 'time') {
-          rootEl.innerHTML = `<span class="large-q-text">${rootNote.clock} o'clock</span>`;
+          rootEl.innerHTML = `<span class="large-q-text" style="color:${rootNote.fillHex};">${rootNote.clock} o'clock</span>`;
         } else if (mode === 'cde') {
           const randomCde = rootNote.cdeNames[Math.floor(Math.random() * rootNote.cdeNames.length)];
-          rootEl.innerHTML = `<span class="large-q-text">${randomCde}</span>`;
+          rootEl.innerHTML = `<span class="large-q-text" style="color:${rootNote.fillHex};">${randomCde}</span>`;
         } else if (mode === 'do') {
           const randomDo = rootNote.doNames[Math.floor(Math.random() * rootNote.doNames.length)];
-          rootEl.innerHTML = `<span class="large-q-text">${randomDo}</span>`;
+          rootEl.innerHTML = `<span class="large-q-text" style="color:${rootNote.fillHex};">${randomDo}</span>`;
         } else if (mode === 'color') {
-          rootEl.innerHTML = `<span class="large-q-text" style="display:inline-flex; align-items:center; gap:10px;"><span style="display:inline-block; width:44px; height:44px; background-color:${rootNote.colorHex}; border-radius:10px; border:2px solid rgba(255,255,255,0.9);"></span><span style="font-size:0.9rem; font-weight:700; color:${rootNote.colorHex};">${rootNote.colorName}</span></span>`;
+          rootEl.innerHTML = `<span class="large-q-text" style="display:inline-flex; align-items:center; gap:10px;"><span style="display:inline-block; line-height:0;">${renderNoteArt(rootNote.id, 58)}</span><span style="display:inline-flex; flex-direction:column; align-items:flex-start; line-height:1.25; color:${rootNote.fillHex};"><span style="font-size:0.9rem; font-weight:700;">${rootNote.colorName}</span><span style="font-size:0.75rem; font-weight:500; opacity:0.85;">(${rootNote.nickName})</span></span></span>`;
         }
 
         playCircleQuestionAudio(rootNote.freq, currentInterval, currentDirection);
@@ -2261,7 +2557,7 @@
       return roots.length > 0 ? roots : [NOTES[0]];
     }
 
-    function playPressedNote(pitchClass) {
+    function playPressedNote(pitchClass, isCorrect = false) {
       ensureAudioStarted();
 
       if (targetFullNote) {
@@ -2273,14 +2569,16 @@
           const actualNoteToPlay = noteBase + targetOctave;
           const velocity = bassAwareVelocity(Tone.Frequency(actualNoteToPlay).toFrequency());
           const startTime = Tone.now() + 0.02;
-          answerSynth.triggerAttackRelease(actualNoteToPlay, "8n", startTime, velocity);
+          // 正解した音だけ少し長く鳴らし、耳でも正解を確かめやすくする。
+          answerSynth.triggerAttackRelease(actualNoteToPlay, isCorrect ? "4n" : "8n", startTime, velocity);
         }
       }
     }
 
     function handleNoteInput(pitchClass) {
       if (isAnswered) {
-        nextQuestion();
+        // 回答後は、正解の鍵を押したときだけ次へ進む(正解・不正解どちらの回答後も同じ)
+        if (targetNote && pitchClass === targetNote.id) nextQuestion();
         return;
       }
 
@@ -2293,25 +2591,33 @@
       showAnswerKeys(pitchClass, targetNote.id, isCorrect);
       total++;
 
-      playPressedNote(pitchClass);
+      playPressedNote(pitchClass, isCorrect);
 
       const resultArea = document.getElementById('resultMessageArea');
 
-      const correctEmojis = ["🎉", "😄", "🙌", "✨", "😆", "👍", "🥳"];
-      const wrongEmojis = ["💧", "😅", "🤔", "😣", "🫠", "😖", "🙃"];
-      const pickEmoji = (arr) => arr[Math.floor(Math.random() * arr.length)];
+      // 吹き出しの話し手は、ユーザーが押した鍵に対応する動物。
+      // 白鍵の動物は「ぼく」、黒鍵の動物は「あたし」と話す。
+      const speaker = pressedNote.isAccidental ? 'あたし' : 'ぼく';
+      const speakerArt = `
+        <span class="result-speaker" style="--speaker-color:${pressedNote.deepHex};">
+          <span class="result-art">${renderNoteArt(pressedNote.id, 42, true)}</span>
+          <span class="result-speaker-label">${pressedNote.doNames.join('')}</span>
+        </span>
+      `;
 
       if (isCorrect) {
         score++;
         resultArea.innerHTML = `
           <div class="result-toast correct">
-            <div class="result-text correct">正解！ ${pickEmoji(correctEmojis)}</div>
+            ${speakerArt}
+            <div class="result-bubble"><div class="result-text correct">正解！！ハイライトされている正解の鍵をもう１回押したら次の問題へ行くよ。</div></div>
           </div>
         `;
       } else {
         resultArea.innerHTML = `
           <div class="result-toast wrong">
-            <div class="result-text wrong">残念... ${pickEmoji(wrongEmojis)}</div>
+            ${speakerArt}
+            <div class="result-bubble"><div class="result-text wrong">残念、${speaker}じゃないよ。ハイライトされている正解の鍵を押したら次の問題へ行くよ。</div></div>
           </div>
         `;
       }
@@ -2321,67 +2627,60 @@
       }
     }
 
-    let isMidiEnabled = true;
-    const midiToggleBtn = document.getElementById('midiToggleBtn');
-    if (midiToggleBtn) {
-      midiToggleBtn.addEventListener('click', () => {
-        isMidiEnabled = !isMidiEnabled;
-        if (isMidiEnabled) {
-          midiToggleBtn.classList.add('active');
-          midiToggleBtn.setAttribute('aria-checked', 'true');
-          midiToggleBtn.title = 'MIDI入力 ON';
-        } else {
-          midiToggleBtn.classList.remove('active');
-          midiToggleBtn.setAttribute('aria-checked', 'false');
-          midiToggleBtn.title = 'MIDI入力 OFF';
-        }
-      });
-    }
 
     function updateMIDIInputs() {
       const statusTextEl = document.getElementById('midiStatusText');
       const containerEl = document.getElementById('midiStatus');
+      const midiConnectBtn = document.getElementById('midiConnectBtn');
       if (!midiAccessGlobal) return;
 
-      const inputs = midiAccessGlobal.inputs.values();
-      let connected = false;
-
-      for (let input of inputs) {
+      let count = 0;
+      for (let input of midiAccessGlobal.inputs.values()) {
         input.onmidimessage = handleMIDIMessage;
-        connected = true;
+        count++;
       }
 
-      if (connected) {
-        if (statusTextEl) statusTextEl.innerText = "MIDIキーボード接続完了！";
+      if (count > 0) {
+        if (statusTextEl) statusTextEl.innerText = "MIDI: 接続済み(" + count + "台)";
         if (containerEl) containerEl.classList.add("connected");
+        if (midiConnectBtn) midiConnectBtn.style.display = "none";
       } else {
-        if (statusTextEl) statusTextEl.innerText = "MIDI機器未接続（画面鍵盤で遊べます）";
+        if (statusTextEl) statusTextEl.innerText = "MIDI: デバイスが見つかりません";
         if (containerEl) containerEl.classList.remove("connected");
+        if (midiConnectBtn) midiConnectBtn.style.display = "inline-flex";
       }
     }
 
-    function setupWebMIDI() {
+    function connectMIDI() {
       const statusTextEl = document.getElementById('midiStatusText');
+      const containerEl = document.getElementById('midiStatus');
 
-      if (navigator.requestMIDIAccess) {
-        navigator.requestMIDIAccess().then(
-          (midiAccess) => {
-            midiAccessGlobal = midiAccess;
-            updateMIDIInputs();
-            midiAccess.onstatechange = () => updateMIDIInputs();
-          },
-          () => {
-            if (statusTextEl) statusTextEl.innerText = "MIDI未接続（画面鍵盤で遊べます）";
-          }
-        );
-      } else {
-        if (statusTextEl) statusTextEl.innerText = "MIDI非対応ブラウザ（画面鍵盤で遊べます）";
+      if (!navigator.requestMIDIAccess) {
+        if (statusTextEl) statusTextEl.innerText = "MIDI: このブラウザは非対応です";
+        return;
       }
+
+      navigator.requestMIDIAccess().then(
+        (access) => {
+          midiAccessGlobal = access;
+          updateMIDIInputs();
+          access.onstatechange = () => updateMIDIInputs();
+        },
+        () => {
+          if (statusTextEl) statusTextEl.innerText = "MIDI: 接続に失敗しました";
+          if (containerEl) containerEl.classList.remove("connected");
+        }
+      );
+    }
+
+    const midiConnectBtn = document.getElementById('midiConnectBtn');
+    if (midiConnectBtn) {
+      midiConnectBtn.addEventListener('click', connectMIDI);
     }
 
     function handleMIDIMessage(event) {
-      // タブがバックグラウンドにある場合、または手動でMIDIがOFFの場合は入力を完全にスルー
-      if (document.hidden || !isMidiEnabled) return;
+      // タブがバックグラウンドにある場合は入力を完全にスルー
+      if (document.hidden) return;
 
       const [status, note, velocity] = event.data;
       const command = status >> 4;
@@ -2405,11 +2704,6 @@
       } else if (e.key === 'Enter' || e.key === ' ') {
         if (isAnswered) nextQuestion();
       }
-    });
-
-    document.getElementById('quizContainer').addEventListener('click', (e) => {
-      if (e.target.closest('#keyboardContainer')) return;
-      if (isAnswered) nextQuestion();
     });
 
     document.querySelectorAll('.save-setting').forEach(cb => {
@@ -2442,7 +2736,7 @@
 
     // 初期実行
     loadSettings();
-    setupWebMIDI();
+    // setupWebMIDI(); -> connectMIDI() on button click
     renderInteractiveKeyboard();
     nextQuestion();
 
