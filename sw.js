@@ -1,4 +1,4 @@
-const CACHE_NAME = 'key-master-pwa-v3';
+const CACHE_NAME = 'key-master-pwa-v19';
 
 const STATIC_ASSETS = [
   './',
